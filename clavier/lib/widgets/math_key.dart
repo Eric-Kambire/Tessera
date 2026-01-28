@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../constants/design_colors.dart';
 import '../constants/design_spacing.dart';
 import '../utils/keyboard_layouts.dart';
-import '../models/key_action.dart';
 
 class MathKey extends StatefulWidget {
   final KeyDefinition definition;
@@ -20,71 +19,125 @@ class MathKey extends StatefulWidget {
 
 class _MathKeyState extends State<MathKey> {
   bool _isPressed = false;
+  OverlayEntry? _popupEntry;
 
   @override
   Widget build(BuildContext context) {
     final isHighlighted = widget.definition.isHighlighted;
+    final isNumber = widget.definition.isNumber;
 
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
       onTapUp: (_) => setState(() => _isPressed = false),
-      onTapCancel: () => setState(() => _isPressed = false),
+      onTapCancel: () {
+        setState(() => _isPressed = false);
+        _removePopup();
+      },
       onTap: widget.onTap,
-      onLongPress: widget.definition.popupItems != null 
-          ? () => _showPopup(context) 
-          : null,
+      onLongPress: widget.definition.hasVariants ? _showPopup : null,
+      onLongPressUp: _removePopup,
       child: Container(
         decoration: BoxDecoration(
-          color: isHighlighted 
-              ? DesignColors.primaryAction 
-              : (_isPressed ? DesignColors.keyPressed : DesignColors.keyBackground),
+          color: isHighlighted
+              ? DesignColors.keyBackground // Usually = has standard BG in some views, but let's keep it if highlighted requested
+              : (_isPressed ? DesignColors.keyBackgroundPressed : DesignColors.keyBackground),
           borderRadius: BorderRadius.circular(DesignSpacing.keyRadius),
           border: Border.all(
-            color: isHighlighted ? DesignColors.primaryAction : DesignColors.keyBorder,
+            color: DesignColors.keyBorder,
             width: 1,
           ),
-          boxShadow: isHighlighted ? [] : [
+          // Floating effect (optional, subtle shadow)
+          boxShadow: [
              BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              offset: const Offset(0, 1),
-              blurRadius: 1,
+              color: Colors.black.withOpacity(0.03),
+              offset: const Offset(0, 2),
+              blurRadius: 2,
              )
           ],
         ),
         alignment: Alignment.center,
-        child: Text(
-          widget.definition.label,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: isHighlighted ? FontWeight.w600 : FontWeight.w400,
-            color: isHighlighted ? Colors.white : DesignColors.primaryText,
+        child: CustomPaint(
+          foregroundPainter: widget.definition.hasVariants ? RedDotPainter() : null,
+          child: Center(
+            child: Text(
+              widget.definition.label,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: (isNumber || isHighlighted) ? FontWeight.w600 : FontWeight.w400,
+                color: isHighlighted ? DesignColors.redAccent : DesignColors.primaryText, // "=" is usually Red text or Blue, or simple Black. User said "Photomath Red".
+              ),
+            ),
           ),
         ),
       ),
     );
   }
 
-  void _showPopup(BuildContext context) async {
-    // Basic popup implementation - for production would use a specific OverlayEntry
-    // mimicking Photomath's horizontal popup
-    final items = widget.definition.popupItems!;
-    
-    // This is a simplified simulation of the popup selection
-    // In a real app, you'd calculate position and show a custom widget overlay
-    final selected = await showDialog<String>(
-      context: context,
-      builder: (ctx) => SimpleDialog(
-        title: Text('Select option'),
-        children: items.map((e) => SimpleDialogOption(
-          onPressed: () => Navigator.pop(ctx, e),
-          child: Text(e, style: const TextStyle(fontSize: 18)),
-        )).toList(),
+  void _showPopup() {
+    final renderBox = context.findRenderObject() as RenderBox;
+    final size = renderBox.size;
+    final offset = renderBox.localToGlobal(Offset.zero);
+
+    _popupEntry = OverlayEntry(
+      builder: (context) => Stack(
+        children: [
+          // Transparent detector to close? No, holding gesture controls usually
+          Positioned(
+            left: offset.dx - 10, // Slight visual offset
+            top: offset.dy - 60, // Above the key
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, 4)),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: widget.definition.popupItems!.map((item) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Text(
+                        item,
+                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
 
-    if (selected != null) {
-      // Handle the variant selection (simplified logic here)
-      widget.onTap(); // In reality, we'd pass the variant
-    }
+    Overlay.of(context).insert(_popupEntry!);
   }
+
+  void _removePopup() {
+    _popupEntry?.remove();
+    _popupEntry = null;
+  }
+}
+
+class RedDotPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = DesignColors.redDot
+      ..style = PaintingStyle.fill;
+
+    // Bottom Right corner
+    final dx = size.width - 6; // Padding
+    final dy = size.height - 6;
+    
+    canvas.drawCircle(Offset(dx, dy), 2, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

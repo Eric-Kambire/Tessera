@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../constants/design_colors.dart';
+import '../constants/design_spacing.dart';
 import '../models/expression_state.dart';
 import '../models/key_action.dart';
 import '../models/keyboard_mode.dart';
@@ -27,6 +28,7 @@ class _MathKeyboardSheetState extends State<MathKeyboardSheet> {
   ExpressionState _state = const ExpressionState();
 
   void _handleKeyAction(KeyAction action) {
+    // Basic logic handling (same as before, concise for brevity)
     setState(() {
       switch (action) {
         case InsertSymbol(symbol: final s):
@@ -43,57 +45,60 @@ class _MathKeyboardSheetState extends State<MathKeyboardSheet> {
         case ClearExpression():
           _state = _state.copyWith(text: '');
           break;
-        case EvaluateExpression():
-          // Trigger solve (simulated)
-          break;
-        default:
-          break;
+        default: break;
       }
     });
-
     widget.onExpressionChanged(_state.text);
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: DesignColors.sheetBackground,
+      color: DesignColors.scaffoldBackground, // Slightly off-white
       child: Column(
-        mainAxisSize: MainAxisSize.min, // Sheet behavior
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Header
-          _buildHeader(),
+          _buildHeader(), // White header
           
-          Divider(height: 1, color: DesignColors.divider),
+          Container(
+            color: Colors.white,
+            child: MathInputArea(state: _state),
+          ),
           
-          // Input Area
-          MathInputArea(state: _state),
-
-          Divider(height: 1, color: DesignColors.divider),
+          // Divider or Shadow
+          Container(height: 1, color: DesignColors.keyBorder),
 
           // Keyboard Controls
-          MathKeyboardTopbar(onAction: _handleKeyAction),
-          
-          Center(
-            child: MathKeyboardSegmentedControl(
-              currentMode: _mode,
-              onModeChanged: (m) => setState(() => _mode = m),
-            ),
-          ),
-          
-          const SizedBox(height: 12),
+          Container(
+            color: DesignColors.scaffoldBackground,
+            child: Column(
+              children: [
+                MathKeyboardTopbar(onAction: _handleKeyAction),
+                
+                const SizedBox(height: 4),
+                
+                MathKeyboardSegmentedControl(
+                  currentMode: _mode,
+                  onModeChanged: (m) => setState(() => _mode = m),
+                ),
+                
+                const SizedBox(height: 12),
 
-          // Main Grid
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6.0), // Outer margin for grid
-            child: MathKeyboard(
-              mode: _mode,
-              onKeyAction: _handleKeyAction,
+                // Main Grid
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: DesignSpacing.horizontalPadding,
+                  ),
+                  child: MathKeyboard(
+                    mode: _mode,
+                    onKeyAction: _handleKeyAction,
+                  ),
+                ),
+                
+                SizedBox(height: MediaQuery.of(context).padding.bottom + 8),
+              ],
             ),
           ),
-          
-          // Bottom Safe Area
-          SizedBox(height: MediaQuery.of(context).padding.bottom + 10), 
         ],
       ),
     );
@@ -114,9 +119,9 @@ class _MathKeyboardSheetState extends State<MathKeyboardSheet> {
               color: DesignColors.primaryText,
             ),
           ),
-          TextButton(
-            onPressed: widget.onClose,
-            child: const Text('Fermer', style: TextStyle(color: DesignColors.primaryAction)),
+          GestureDetector(
+             onTap: widget.onClose,
+            child: const Icon(Icons.keyboard_arrow_down, size: 28, color: DesignColors.secondaryText),
           ),
         ],
       ),

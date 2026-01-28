@@ -15,44 +15,47 @@ class MathKeyboardSegmentedControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: DesignSpacing.segmentHeight,
-      margin: const EdgeInsets.symmetric(horizontal: DesignSpacing.horizontalPadding),
-      decoration: BoxDecoration(
-        color: DesignColors.segmentInactive,
-        borderRadius: BorderRadius.circular(DesignSpacing.segmentRadius),
-        border: Border.all(color: DesignColors.keyBorder),
-      ),
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: DesignSpacing.horizontalPadding),
       child: Row(
-        mainAxisSize: MainAxisSize.min, // Hug content (centered usually)
+        mainAxisAlignment: MainAxisAlignment.start, // Left aligned usually
         children: [
-          _buildSegment(context, KeyboardMode.basicArithmetic, '+ - × ÷'),
-          _buildSegment(context, KeyboardMode.functionsLog, 'f(x)'),
-          _buildSegment(context, KeyboardMode.trigonometry, 'sin cos'),
-          _buildSegment(context, KeyboardMode.limitsDiffInt, 'lim ∫'),
-          _buildSegment(context, KeyboardMode.alphabet, 'abc'),
+          _buildSegment(KeyboardMode.basicArithmetic, '+ - × ÷'),
+          const SizedBox(width: 8),
+          _buildSegment(KeyboardMode.functionsLog, 'f(x)'),
+          const SizedBox(width: 8),
+          _buildSegment(KeyboardMode.trigonometry, 'sin cos'),
+          const SizedBox(width: 8),
+          _buildSegment(KeyboardMode.limitsDiffInt, 'lim ∫'),
+          const SizedBox(width: 8),
+          _buildSegment(KeyboardMode.alphabet, 'abc'),
         ],
       ),
     );
   }
 
-  Widget _buildSegment(BuildContext context, KeyboardMode mode, String label) {
+  Widget _buildSegment(KeyboardMode mode, String label) {
     final isSelected = currentMode == mode;
     return GestureDetector(
       onTap: () => onModeChanged(mode),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        duration: const Duration(milliseconds: 150),
+        height: DesignSpacing.segmentHeight,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: isSelected ? DesignColors.segmentActive : Colors.transparent,
+          color: isSelected ? DesignColors.segmentActiveBackground : Colors.white,
           borderRadius: BorderRadius.circular(DesignSpacing.segmentRadius),
+          border: isSelected 
+              ? null 
+              : Border.all(color: DesignColors.segmentBorder),
         ),
         child: Text(
           label,
           style: TextStyle(
             fontSize: 14,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+            fontWeight: FontWeight.w600,
             color: isSelected 
                 ? DesignColors.segmentActiveText 
                 : DesignColors.segmentInactiveText,

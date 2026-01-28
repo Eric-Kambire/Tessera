@@ -25,6 +25,8 @@ class MathKeyboard extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: DesignSpacing.keySpacing),
           child: Row(
             children: row.map((keyDef) {
+              // Exact distribution: 6 columns implies width/6.
+              // Assuming uniform distribution for now for the 6-col grid logic
               return Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: DesignSpacing.keySpacing / 2),
