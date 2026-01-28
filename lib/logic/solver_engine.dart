@@ -2,33 +2,40 @@
 
 import 'ast_models.dart';
 import 'solution_models.dart';
-import 'standard_rules.dart';
+import 'rules/rules.dart';
 
 typedef Rule = SolvingStep? Function(Expr input);
 
 class SolverEngine {
   
+  // L'ordre est CRUCIAL pour une résolution fluide.
   static final List<Rule> rules = [
-    simplifyIdentity,     // <--- NOUVEAU (Le Nettoyeur passe en premier pour alléger)
+    simplifyIdentity,
     simplifySqrt,
     simplifyUnaryMinus,
     simplifyPower,
     simplifyDistribute,
     
-    simplifyTermMultiplication, // <--- NOUVEAU (Pour gérer 5 * -a)
-    simplifyMultiplication,     // (Pour gérer 5 * 5)
+    // NOUVEAUX NOMS :
+    simplifyRearrangeMultiply,    // Trie les multiplications
+    simplifyTermMultiplication,
+    simplifyVariableMultiplication,
+    simplifyMultiplication,
     simplifyDivision,
     
-    simplifyRearrange,    
-    simplifyCombineTerms, 
+    simplifyRearrangeAdd,         // Trie les additions ET soustractions
+    simplifyCombineTerms,
+
+    isolateVariable,                // <--- NOUVEAU : Isoler la variable
     
     simplifyAddition,
     simplifySubtraction,
   ];
 
-  /// Résout une équation en appliquant les règles de manière récursive.
+  /// Point d'entrée : Résout une équation complète
   static Solution solve(Expr startEquation) {
     final List<SolvingStep> history = [];
+    // On lance la simplification récursive
     final Expr finalResult = _simplify(startEquation, history);
     
     return Solution(
@@ -37,10 +44,13 @@ class SolverEngine {
     );
   }
 
-  /// Le vrai moteur : une fonction récursive qui simplifie un nœud d'expression.
+  /// Moteur Récursif (Deep Simplification)
+  /// 1. Simplifie les enfants d'abord (Post-Order Traversal)
+  /// 2. Simplifie le nœud courant tant que possible
   static Expr _simplify(Expr expression, List<SolvingStep> history) {
     
-    // 1. ÉTAPE RÉCURSIVE : Simplifier les enfants de ce nœud d'abord.
+    // --- ÉTAPE 1 : RÉCURSION (Plongée) ---
+    // On nettoie d'abord ce qu'il y a à l'intérieur des parenthèses/opérations
     Expr current;
     if (expression is Add) {
       current = Add(_simplify(expression.left, history), _simplify(expression.right, history));
@@ -60,11 +70,14 @@ class SolverEngine {
       current = Equation(_simplify(expression.left, history), _simplify(expression.right, history));
     }
     else {
+      // Feuilles (Number, Variable)
       current = expression;
     }
 
-    // 2. ÉTAPE D'APPLICATION : Appliquer les règles sur le nœud actuel.
-    while (true) {
+    // --- ÉTAPE 2 : APPLICATION DES RÈGLES (Remontée) ---
+    // On boucle tant qu'une règle modifie l'expression courante
+    int loopSafety = 0; // Sécurité pour éviter les boucles infinies locales
+    while (loopSafety < 100) {
       bool ruleApplied = false;
       for (final rule in rules) {
         final step = rule(current);
@@ -72,12 +85,14 @@ class SolverEngine {
           history.add(step);
           current = step.output;
           ruleApplied = true;
-          break;
+          break; // On recommence la liste des règles depuis le début (car l'arbre a changé)
         }
       }
+      
       if (!ruleApplied) {
-        break;
+        break; // Plus rien à faire sur ce nœud, on remonte
       }
+      loopSafety++;
     }
     
     return current;
