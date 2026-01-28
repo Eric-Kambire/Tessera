@@ -10,22 +10,24 @@ class SolverEngine {
   
   // L'ordre est CRUCIAL pour une résolution fluide.
   static final List<Rule> rules = [
-    simplifyIdentity,               // <--- PRIORITÉ 1 : Tuer les "0a" et "*1" immédiatement
+    simplifyIdentity,
     simplifySqrt,
     simplifyUnaryMinus,
     simplifyPower,
-    simplifyDistribute,             // Développer les parenthèses
+    simplifyDistribute,
     
-    simplifyTermMultiplication,     // Gérer 5 * (-a)
-    simplifyVariableMultiplication, // <--- CRUCIAL : Gérer a * 2a -> 2a^2
-    simplifyMultiplication,         // Gérer 5 * 5
+    // NOUVEAUX NOMS :
+    simplifyRearrangeMultiply,    // Trie les multiplications
+    simplifyTermMultiplication,
+    simplifyVariableMultiplication,
+    simplifyMultiplication,
     simplifyDivision,
     
-    simplifyRearrange,              // Trier pour rapprocher les termes semblables
-    simplifyCombineTerms,           // Fusionner (2a + a -> 3a)
-    
-    isolateVariable,                // <--- NOUVEAU : Isoler la variable
+    simplifyRearrangeAdd,         // Trie les additions ET soustractions
+    simplifyCombineTerms,
 
+    isolateVariable,                // <--- NOUVEAU : Isoler la variable
+    
     simplifyAddition,
     simplifySubtraction,
   ];
