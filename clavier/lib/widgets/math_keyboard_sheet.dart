@@ -56,13 +56,13 @@ class _MathKeyboardSheetState extends State<MathKeyboardSheet> {
           _state = _state.copyWith(cursorPosition: newPos);
           break;
         case OpenModal(modalType: final type):
-          if (type == 'matrix') {
              // Defer UI call to post-build or allow here since it's a callback
              Future.microtask(() => showDialog(
                context: context,
-               builder: (_) => const MatrixDialog(),
+               builder: (_) => MatrixDialog(
+                 isDeterminant: type == 'determinant',
+               ),
              ));
-          }
           break;
         case EvaluateExpression():
           // TODO: Trigger calculation
