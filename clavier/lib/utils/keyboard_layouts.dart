@@ -31,8 +31,8 @@ abstract class KeyboardLayouts {
       KeyDefinition(label: MathSymbols.division, action: InsertSymbol('/')),
     ],
     [
+      KeyDefinition(label: '□/□', action: InsertTemplate('/', cursorOffset: 1)), // Fraction
       KeyDefinition(label: '√□', popupItems: ['√', '∛', 'ⁿ√'], action: InsertTemplate('sqrt()', cursorOffset: 1)),
-      KeyDefinition(label: '|□|', action: InsertTemplate('abs()', cursorOffset: 1)),
       KeyDefinition(label: '4', action: InsertSymbol('4'), isNumber: true),
       KeyDefinition(label: '5', action: InsertSymbol('5'), isNumber: true),
       KeyDefinition(label: '6', action: InsertSymbol('6'), isNumber: true),
@@ -50,7 +50,7 @@ abstract class KeyboardLayouts {
       KeyDefinition(label: 'π', popupItems: ['π', 'e', 'φ'], action: InsertSymbol(MathSymbols.pi)),
       KeyDefinition(label: '%', action: InsertSymbol('%')),
       KeyDefinition(label: '0', action: InsertSymbol('0'), isNumber: true),
-      KeyDefinition(label: '.', action: InsertSymbol('.')),
+      KeyDefinition(label: ',', action: InsertSymbol(',')),
       KeyDefinition(label: '=', action: EvaluateExpression(), isHighlighted: true),
       KeyDefinition(label: MathSymbols.plus, action: InsertSymbol('+')),
     ],
@@ -58,37 +58,36 @@ abstract class KeyboardLayouts {
 
   static const _functionsLog = [
     [
+      KeyDefinition(label: '|□|', action: InsertTemplate('abs()', cursorOffset: 1)),
       KeyDefinition(label: 'f(x)', action: InsertSymbol('f(x)')),
-      KeyDefinition(label: 'g(x)', action: InsertSymbol('g(x)')),
-      KeyDefinition(label: 'log', action: InsertTemplate('log()', cursorOffset: 1)),
-      KeyDefinition(label: 'ln', action: InsertTemplate('ln()', cursorOffset: 1)),
-      KeyDefinition(label: 'e', action: InsertSymbol('e')),
+      KeyDefinition(label: 'log₁₀', action: InsertTemplate('log10()', cursorOffset: 1)),
+      KeyDefinition(label: 'nVk', action: InsertCode('permut()')), // Variation
+      KeyDefinition(label: 'i', action: InsertSymbol('i')),
+      KeyDefinition(label: 'list', action: InsertSymbol(',')),
+    ],
+    [
+      KeyDefinition(label: 'Sub', action: InsertSymbol('_')),
+      KeyDefinition(label: 'f(..)', action: InsertSymbol('(')),
+      KeyDefinition(label: 'log₂', action: InsertTemplate('log2()', cursorOffset: 1)),
+      KeyDefinition(label: 'nPk', action: InsertCode('nPr()')),
+      KeyDefinition(label: 'z', action: InsertSymbol('z')),
       KeyDefinition(label: '!', action: InsertSymbol('!')),
     ],
-    // Fillers for 6-col Structure
     [
-      KeyDefinition(label: 'sin', action: InsertTemplate('sin()', cursorOffset: 1)),
-      KeyDefinition(label: 'cos', action: InsertTemplate('cos()', cursorOffset: 1)),
-      KeyDefinition(label: 'tan', action: InsertTemplate('tan()', cursorOffset: 1)),
-      KeyDefinition(label: 'cot', action: InsertTemplate('cot()', cursorOffset: 1)),
-      KeyDefinition(label: 'sinh', action: InsertTemplate('sinh()', cursorOffset: 1)),
-      KeyDefinition(label: 'cosh', action: InsertTemplate('cosh()', cursorOffset: 1)),
-    ],
-    [
-      KeyDefinition(label: 'lim', action: InsertSymbol('lim')),
-      KeyDefinition(label: 'sum', action: InsertSymbol('sum')),
-      KeyDefinition(label: 'prod', action: InsertSymbol('prod')),
-      KeyDefinition(label: 'int', action: InsertSymbol('int')),
-      KeyDefinition(label: 'dy/dx', action: InsertSymbol('d/dx')),
-      KeyDefinition(label: 'dt', action: InsertSymbol('dt')),
-    ],
-    [
+      KeyDefinition(label: 'e', action: InsertSymbol('e')),
+      KeyDefinition(label: 'f(x,y)', action: InsertSymbol('f(x,y)')),
+      KeyDefinition(label: 'logₙ', action: InsertTemplate('log()')),
+      KeyDefinition(label: 'nCk', action: InsertCode('nCr()')),
+      KeyDefinition(label: 'z̄', action: InsertCode('conjugate()')),
       KeyDefinition(label: 'Matrix', action: OpenModal('matrix')),
-      KeyDefinition(label: 'Det', action: OpenModal('determinant')),
-      KeyDefinition(label: 'i', action: InsertSymbol('i')),
-      KeyDefinition(label: ',', action: InsertSymbol(',')),
-      KeyDefinition(label: '(', action: InsertSymbol('(')),
-      KeyDefinition(label: ')', action: InsertSymbol(')')),
+    ],
+    [
+      KeyDefinition(label: 'exp', action: InsertTemplate('exp()', cursorOffset: 1)),
+      KeyDefinition(label: 'LCM', action: InsertCode('lcm()')),
+      KeyDefinition(label: 'ln', action: InsertTemplate('ln()', cursorOffset: 1)),
+      KeyDefinition(label: 'Binom', action: InsertCode('nCr()')),
+      KeyDefinition(label: 'sign', action: InsertTemplate('sign()', cursorOffset: 1)),
+      KeyDefinition(label: '|Mat|', action: OpenModal('determinant')),
     ],
   ];
 

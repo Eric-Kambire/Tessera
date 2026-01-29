@@ -14,6 +14,11 @@ class InsertTemplate extends KeyAction {
   const InsertTemplate(this.template, {this.cursorOffset = 1});
 }
 
+class InsertCode extends KeyAction {
+  final String code;
+  const InsertCode(this.code);
+}
+
 class MoveCursor extends KeyAction {
   final int offset; // -1 for left, +1 for right
   const MoveCursor(this.offset);
