@@ -37,10 +37,35 @@ class _MathKeyboardSheetState extends State<MathKeyboardSheet> {
           _state = _state.copyWith(text: _state.text + s);
           break;
         case InsertTemplate(template: final t, cursorOffset: final offset):
+           // Map templates to visual representations if needed
+           String visual = t;
+           int derivedOffset = offset;
+           
+           if (t == '/') { visual = '□/□'; derivedOffset = 2; } // 2 chars back to first box
+           else if (t == 'sqrt()') { visual = '√□'; derivedOffset = 0; } // Cursor at end? or inside? 
+           // Better handling: Photomath places cursor IN the placeholder.
+           // Since we use simple text field for now, we simulate by surrounding with chars or just text.
+           // The user requested "space for numerator/denominator".
+           // True visual editing requires a rich editor (zefyr/flutter_quill custom).
+           // For now, we simulate "visual text" as requested:
+           
+           if (t == '/') {
+             visual = '□/□';
+             derivedOffset = 2; // Position between boxes? No, position at first box.
+           } else if (t == 'sqrt()') {
+             visual = '√□';
+             derivedOffset = 0;
+           }
+           
            _state = _state.copyWith(
-             text: _state.text + t,
-             cursorPosition: _state.cursorPosition + t.length - offset, // Approximation
+             text: _state.text + visual,
+             // cursorPosition: _state.cursorPosition + visual.length - derivedOffset, // Simplified
            );
+           break;
+        case SwitchMode():
+           setState(() {
+             _mode = _mode == KeyboardMode.alphabet ? KeyboardMode.basicArithmetic : KeyboardMode.alphabet;
+           });
            break;
         case DeleteChar():
           if (_state.text.isNotEmpty) {

@@ -28,8 +28,6 @@ class MathKeyboardSegmentedControl extends StatelessWidget {
           _buildSegment(KeyboardMode.trigonometry, 'sin cos'),
           const SizedBox(width: 8),
           _buildSegment(KeyboardMode.limitsDiffInt, 'lim ∫'),
-          const SizedBox(width: 8),
-          _buildSegment(KeyboardMode.alphabet, 'abc'),
         ],
       ),
     );

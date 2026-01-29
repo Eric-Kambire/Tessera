@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../constants/design_colors.dart';
 import '../constants/design_spacing.dart';
 import '../models/key_action.dart';
+import '../models/keyboard_mode.dart'; // Maybe needed if we pass mode explicitly, but separate action is fine
 
 class MathKeyboardTopbar extends StatelessWidget {
   final ValueChanged<KeyAction> onAction;
@@ -16,9 +17,25 @@ class MathKeyboardTopbar extends StatelessWidget {
         vertical: 8,
       ),
       child: Row(
-        children: [
-          // History / ABC
-          _IconButton(icon: Icons.history, onTap: () {}), // Placeholder
+          // ABC Toggle
+          GestureDetector(
+            onTap: () => onAction(const SwitchMode()),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Text(
+                'abc',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: DesignColors.primaryText,
+                ),
+              ),
+            ),
+          ),
           
           const Spacer(),
 
