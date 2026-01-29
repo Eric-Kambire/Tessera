@@ -62,6 +62,9 @@ class _MathKeyboardSheetState extends State<MathKeyboardSheet> {
              // cursorPosition: _state.cursorPosition + visual.length - derivedOffset, // Simplified
            );
            break;
+        case InsertCode(code: final c):
+           _state = _state.copyWith(text: _state.text + c);
+           break;
         case SwitchMode():
            setState(() {
              _mode = _mode == KeyboardMode.alphabet ? KeyboardMode.basicArithmetic : KeyboardMode.alphabet;
