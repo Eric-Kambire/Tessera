@@ -8,6 +8,7 @@ import 'math_input_area.dart';
 import 'math_keyboard_topbar.dart';
 import 'math_keyboard_segmented_control.dart';
 import 'math_keyboard.dart';
+import 'matrix_dialog.dart';
 
 class MathKeyboardSheet extends StatefulWidget {
   final Function(String) onExpressionChanged;
@@ -27,15 +28,19 @@ class _MathKeyboardSheetState extends State<MathKeyboardSheet> {
   KeyboardMode _mode = KeyboardMode.basicArithmetic;
   ExpressionState _state = const ExpressionState();
 
+
+
   void _handleKeyAction(KeyAction action) {
-    // Basic logic handling (same as before, concise for brevity)
     setState(() {
       switch (action) {
         case InsertSymbol(symbol: final s):
           _state = _state.copyWith(text: _state.text + s);
           break;
-        case InsertTemplate(template: final t):
-           _state = _state.copyWith(text: _state.text + t);
+        case InsertTemplate(template: final t, cursorOffset: final offset):
+           _state = _state.copyWith(
+             text: _state.text + t,
+             cursorPosition: _state.cursorPosition + t.length - offset, // Approximation
+           );
            break;
         case DeleteChar():
           if (_state.text.isNotEmpty) {
@@ -44,6 +49,24 @@ class _MathKeyboardSheetState extends State<MathKeyboardSheet> {
           break;
         case ClearExpression():
           _state = _state.copyWith(text: '');
+          break;
+        case MoveCursor(offset: final o):
+          // Simple bounds check
+          final newPos = (_state.cursorPosition + o).clamp(0, _state.text.length);
+          _state = _state.copyWith(cursorPosition: newPos);
+          break;
+        case OpenModal(modalType: final type):
+          if (type == 'matrix') {
+             // Defer UI call to post-build or allow here since it's a callback
+             Future.microtask(() => showDialog(
+               context: context,
+               builder: (_) => const MatrixDialog(),
+             ));
+          }
+          break;
+        case EvaluateExpression():
+          // TODO: Trigger calculation
+          print("Calculating: ${_state.text}");
           break;
         default: break;
       }

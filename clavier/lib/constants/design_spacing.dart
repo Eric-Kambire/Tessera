@@ -2,6 +2,8 @@ abstract class DesignSpacing {
   // Global Layout
   static const double horizontalPadding = 8.0; // Tighter padding
   static const double bottomPadding = 8.0;
+  static const double inputAreaPadding = 16.0;
+  static const double modalRadius = 16.0;
   
   // Keys
   static const double keySpacing = 6.0; // The gap between keys

@@ -22,6 +22,12 @@ class _MathKeyState extends State<MathKey> {
   OverlayEntry? _popupEntry;
 
   @override
+  void dispose() {
+    _removePopup();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isHighlighted = widget.definition.isHighlighted;
     final isNumber = widget.definition.isNumber;

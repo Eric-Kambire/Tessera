@@ -10,11 +10,13 @@ abstract class DesignColors {
   static const Color primaryText = Color(0xFF1E1E1E); // Nearly black, soft
   static const Color mathSymbolText = Color(0xFF000000); 
   static const Color secondaryText = Color(0xFF555555); // For labels like 'abc'
+  static const Color placeholderText = Color(0xFF9E9E9E); // Grey for empty input
   
   // Special Keys
   static const Color operatorText = Color(0xFF1E1E1E); 
   
   // Accents & Actions
+  static const Color primaryAction = Color(0xFFFD602E); // Main action color
   static const Color redAccent = Color(0xFFFD602E); // Photomath Red (Cursor, Dots)
   static const Color redDot = Color(0xFFFD602E);
   
