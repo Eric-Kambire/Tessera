@@ -31,7 +31,7 @@ abstract class KeyboardLayouts {
       KeyDefinition(label: MathSymbols.division, action: InsertSymbol('/')),
     ],
     [
-      KeyDefinition(label: '□/□', action: InsertTemplate('/', cursorOffset: 1)), // Fraction
+      KeyDefinition(label: '□/□', popupItems: ['□/□', '□(□/□)'], action: InsertTemplate('/', cursorOffset: 1)), // Fraction with variants
       KeyDefinition(label: '√□', popupItems: ['√', '∛', 'ⁿ√'], action: InsertTemplate('sqrt()', cursorOffset: 1)),
       KeyDefinition(label: '4', action: InsertSymbol('4'), isNumber: true),
       KeyDefinition(label: '5', action: InsertSymbol('5'), isNumber: true),
@@ -61,7 +61,7 @@ abstract class KeyboardLayouts {
       KeyDefinition(label: '|□|', action: InsertTemplate('abs()', cursorOffset: 1)),
       KeyDefinition(label: 'f(x)', action: InsertSymbol('f(x)')),
       KeyDefinition(label: 'log₁₀', action: InsertTemplate('log10()', cursorOffset: 1)),
-      KeyDefinition(label: 'nVk', action: InsertCode('permut()')), // Variation
+      KeyDefinition(label: 'nVk', action: InsertCode('permut()')),
       KeyDefinition(label: 'i', action: InsertSymbol('i')),
       KeyDefinition(label: 'list', action: InsertSymbol(',')),
     ],
@@ -91,9 +91,82 @@ abstract class KeyboardLayouts {
     ],
   ];
 
+  static const _limitsDiffInt = [
+    [
+      KeyDefinition(label: 'lim->', action: InsertTemplate('lim()', cursorOffset: 1)),
+      KeyDefinition(label: 'd/dx', action: InsertTemplate('diff()', cursorOffset: 1)),
+      KeyDefinition(label: '∫dx', action: InsertTemplate('int()', cursorOffset: 1)),
+      KeyDefinition(label: 'dy/dx', action: InsertSymbol('dy/dx')),
+      KeyDefinition(label: 'an', action: InsertSymbol('a_n')),
+    ],
+    [
+      KeyDefinition(label: 'lim+', action: InsertTemplate('lim_right()', cursorOffset: 1)),
+      KeyDefinition(label: 'd²/dx²', action: InsertTemplate('diff2()', cursorOffset: 1)),
+      KeyDefinition(label: '∫a,b', action: InsertTemplate('int_def()', cursorOffset: 1)),
+      KeyDefinition(label: 'dx', action: InsertSymbol('dx')),
+      KeyDefinition(label: '...', action: InsertSymbol('...')),
+    ],
+    [
+      KeyDefinition(label: 'lim-', action: InsertTemplate('lim_left()', cursorOffset: 1)),
+      KeyDefinition(label: 'dⁿ', action: InsertTemplate('diff_n()', cursorOffset: 1)),
+      KeyDefinition(label: '∫∫', action: InsertTemplate('int2()', cursorOffset: 1)),
+      KeyDefinition(label: 'dy', action: InsertSymbol('dy')),
+      KeyDefinition(label: '', action: InsertSymbol('')), // Empty filler
+    ],
+    [
+      KeyDefinition(label: '∞', action: InsertSymbol('infinity')),
+      KeyDefinition(label: '', action: InsertSymbol('')), // Empty filler
+      KeyDefinition(label: 'Σ', action: InsertTemplate('sum()', cursorOffset: 1)),
+      KeyDefinition(label: "y'", action: InsertSymbol("y'")),
+      KeyDefinition(label: '', action: InsertSymbol('')), // Empty filler
+    ],
+  ];
+
+  static const _alphabet = [
+    [
+      KeyDefinition(label: 'a', action: InsertSymbol('a')),
+      KeyDefinition(label: 'b', action: InsertSymbol('b')),
+      KeyDefinition(label: 'c', action: InsertSymbol('c')),
+      KeyDefinition(label: 'd', action: InsertSymbol('d')),
+      KeyDefinition(label: 'e', action: InsertSymbol('e')),
+      KeyDefinition(label: 'f', action: InsertSymbol('f')),
+      KeyDefinition(label: 'g', action: InsertSymbol('g')),
+      KeyDefinition(label: 'h', action: InsertSymbol('h')),
+    ],
+    [
+      KeyDefinition(label: 'i', action: InsertSymbol('i')),
+      KeyDefinition(label: 'j', action: InsertSymbol('j')),
+      KeyDefinition(label: 'k', action: InsertSymbol('k')),
+      KeyDefinition(label: 'l', action: InsertSymbol('l')),
+      KeyDefinition(label: 'm', action: InsertSymbol('m')),
+      KeyDefinition(label: 'n', action: InsertSymbol('n')),
+      KeyDefinition(label: 'o', action: InsertSymbol('o')),
+      KeyDefinition(label: 'p', action: InsertSymbol('p')),
+    ],
+    [
+      KeyDefinition(label: 'q', action: InsertSymbol('q')),
+      KeyDefinition(label: 'r', action: InsertSymbol('r')),
+      KeyDefinition(label: 's', action: InsertSymbol('s')),
+      KeyDefinition(label: 't', action: InsertSymbol('t')),
+      KeyDefinition(label: 'u', action: InsertSymbol('u')),
+      KeyDefinition(label: 'v', action: InsertSymbol('v')),
+      KeyDefinition(label: 'w', action: InsertSymbol('w')),
+      KeyDefinition(label: 'x', action: InsertSymbol('x')),
+    ],
+    [
+      KeyDefinition(label: 'y', action: InsertSymbol('y')),
+      KeyDefinition(label: 'z', action: InsertSymbol('z')),
+      KeyDefinition(label: 'α', action: InsertSymbol('alpha')),
+      KeyDefinition(label: 'β', action: InsertSymbol('beta')),
+      KeyDefinition(label: 'θ', action: InsertSymbol('theta')),
+      KeyDefinition(label: 'ρ', action: InsertSymbol('rho')),
+      KeyDefinition(label: 'Φ', action: InsertSymbol('phi')),
+      KeyDefinition(label: '', action: InsertSymbol('')), // Spacer
+    ],
+  ];
+
   static const _trigonometry = _functionsLog; // Placeholder
-  static const _limitsDiffInt = _functionsLog; // Placeholder
-  static const _alphabet = _functionsLog; // Placeholder
+
 }
 
 class KeyDefinition {
