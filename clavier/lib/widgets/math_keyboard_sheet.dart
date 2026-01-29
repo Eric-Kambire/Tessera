@@ -50,16 +50,28 @@ class _MathKeyboardSheetState extends State<MathKeyboardSheet> {
            // For now, we simulate "visual text" as requested:
            
            if (t == '/') {
-             visual = '□/□';
-             derivedOffset = 2; // Position between boxes? No, position at first box.
+             // Fraction: "□ / □" with cursor before the slash? 
+             // Photomath places cursor in the first box.
+             // We insert "□ / □" and want cursor after first box? No, inside it.
+             // Since we can't be "inside" a char, we delete the first box char and replace it with cursor? No.
+             // We'll just place it before the slash.
+             visual = '□ / □';
+             derivedOffset = 4; // Length is 5. Cursor at index 1 (after first box)? No.
+             // If we want cursor at '□| / □', offset from end is 4. (total 5 chars)
+             // text: ... □ / □
+             // pos:      ^
            } else if (t == 'sqrt()') {
              visual = '√□';
-             derivedOffset = 0;
+             derivedOffset = 0; // Cursor after box? 
+             // Photomath: inside box. 
+             // visual: √|□
+             derivedOffset = 1; 
            }
            
            _state = _state.copyWith(
              text: _state.text + visual,
-             // cursorPosition: _state.cursorPosition + visual.length - derivedOffset, // Simplified
+             // Move cursor back by derivedOffset to simulate being "inside" or at the slot
+             cursorPosition: (_state.cursorPosition + visual.length - derivedOffset).clamp(0, _state.text.length + visual.length),
            );
            break;
         case InsertCode(code: final c):
