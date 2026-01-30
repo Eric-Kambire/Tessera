@@ -19,15 +19,15 @@ class MathKeyboardSegmentedControl extends StatelessWidget {
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: DesignSpacing.horizontalPadding),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.start, // Left aligned usually
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          _buildSegment(KeyboardMode.basicArithmetic, '+ - × ÷'),
+          _buildSegment(KeyboardMode.basicArithmetic, '+ −\n× ÷'),
           const SizedBox(width: 8),
-          _buildSegment(KeyboardMode.functionsLog, 'f(x)'),
+          _buildSegment(KeyboardMode.functionsLog, 'f(x) e\nlog ln'),
           const SizedBox(width: 8),
-          _buildSegment(KeyboardMode.trigonometry, 'sin cos'),
+          _buildSegment(KeyboardMode.trigonometry, 'sin cos\ntan cot'),
           const SizedBox(width: 8),
-          _buildSegment(KeyboardMode.limitsDiffInt, 'lim ∫'),
+          _buildSegment(KeyboardMode.limitsDiffInt, 'lim dx\n∫ Σ ∞'),
         ],
       ),
     );
@@ -39,23 +39,24 @@ class MathKeyboardSegmentedControl extends StatelessWidget {
       onTap: () => onModeChanged(mode),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        height: DesignSpacing.segmentHeight,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: isSelected ? DesignColors.segmentActiveBackground : Colors.white,
           borderRadius: BorderRadius.circular(DesignSpacing.segmentRadius),
-          border: isSelected 
-              ? null 
+          border: isSelected
+              ? null
               : Border.all(color: DesignColors.segmentBorder),
         ),
         child: Text(
           label,
+          textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: 12,
+            height: 1.3,
             fontWeight: FontWeight.w600,
-            color: isSelected 
-                ? DesignColors.segmentActiveText 
+            color: isSelected
+                ? DesignColors.segmentActiveText
                 : DesignColors.segmentInactiveText,
           ),
         ),

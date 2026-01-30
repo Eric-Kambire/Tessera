@@ -16,9 +16,9 @@ abstract class DesignColors {
   static const Color operatorText = Color(0xFF1E1E1E); 
   
   // Accents & Actions
-  static const Color primaryAction = Color(0xFFFD602E); // Main action color
-  static const Color redAccent = Color(0xFFFD602E); // Photomath Red (Cursor, Dots)
-  static const Color redDot = Color(0xFFFD602E);
+  static const Color primaryAction = Color(0xFFB71C1C); // Main action color
+  static const Color redAccent = Color(0xFFB71C1C); // Photomath Red (Cursor, Dots)
+  static const Color redDot = Color(0xFFB71C1C);
   
   // Segmented Control
   static const Color segmentActiveBackground = Color(0xFF1E1E1E); // Black bubble

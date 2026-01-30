@@ -27,76 +27,80 @@ class MathKeyboardSheet extends StatefulWidget {
 class _MathKeyboardSheetState extends State<MathKeyboardSheet> {
   KeyboardMode _mode = KeyboardMode.basicArithmetic;
   ExpressionState _state = const ExpressionState();
+  final List<ExpressionState> _history = [];
 
+  bool get _isAlphabetMode => _mode == KeyboardMode.alphabet;
 
+  void _saveHistory() {
+    _history.add(_state);
+    // Keep history bounded
+    if (_history.length > 100) {
+      _history.removeAt(0);
+    }
+  }
 
   void _handleKeyAction(KeyAction action) {
     setState(() {
       switch (action) {
         case InsertSymbol(symbol: final s):
+          _saveHistory();
           _state = _state.copyWith(text: _state.text + s);
           break;
         case InsertTemplate(template: final t, cursorOffset: final offset):
+           _saveHistory();
            // Map templates to visual representations if needed
            String visual = t;
            int derivedOffset = offset;
-           
-           if (t == '/') { visual = '□/□'; derivedOffset = 2; } // 2 chars back to first box
-           else if (t == 'sqrt()') { visual = '√□'; derivedOffset = 0; } // Cursor at end? or inside? 
-           // Better handling: Photomath places cursor IN the placeholder.
-           // Since we use simple text field for now, we simulate by surrounding with chars or just text.
-           // The user requested "space for numerator/denominator".
-           // True visual editing requires a rich editor (zefyr/flutter_quill custom).
-           // For now, we simulate "visual text" as requested:
-           
+
+           if (t == '/') { visual = '□/□'; derivedOffset = 2; }
+           else if (t == 'sqrt()') { visual = '√□'; derivedOffset = 0; }
+
            if (t == '/') {
-             // Fraction: "□ / □" with cursor before the slash? 
-             // Photomath places cursor in the first box.
-             // We insert "□ / □" and want cursor after first box? No, inside it.
-             // Since we can't be "inside" a char, we delete the first box char and replace it with cursor? No.
-             // We'll just place it before the slash.
              visual = '□ / □';
-             derivedOffset = 4; // Length is 5. Cursor at index 1 (after first box)? No.
-             // If we want cursor at '□| / □', offset from end is 4. (total 5 chars)
-             // text: ... □ / □
-             // pos:      ^
+             derivedOffset = 4;
            } else if (t == 'sqrt()') {
              visual = '√□';
-             derivedOffset = 0; // Cursor after box? 
-             // Photomath: inside box. 
-             // visual: √|□
-             derivedOffset = 1; 
+             derivedOffset = 1;
            }
-           
+
            _state = _state.copyWith(
              text: _state.text + visual,
-             // Move cursor back by derivedOffset to simulate being "inside" or at the slot
              cursorPosition: (_state.cursorPosition + visual.length - derivedOffset).clamp(0, _state.text.length + visual.length),
            );
            break;
         case InsertCode(code: final c):
+           _saveHistory();
            _state = _state.copyWith(text: _state.text + c);
            break;
         case SwitchMode():
            setState(() {
-             _mode = _mode == KeyboardMode.alphabet ? KeyboardMode.basicArithmetic : KeyboardMode.alphabet;
+             _mode = _isAlphabetMode ? KeyboardMode.basicArithmetic : KeyboardMode.alphabet;
            });
            break;
         case DeleteChar():
           if (_state.text.isNotEmpty) {
+            _saveHistory();
             _state = _state.copyWith(text: _state.text.substring(0, _state.text.length - 1));
           }
           break;
         case ClearExpression():
+          _saveHistory();
           _state = _state.copyWith(text: '');
           break;
         case MoveCursor(offset: final o):
-          // Simple bounds check
           final newPos = (_state.cursorPosition + o).clamp(0, _state.text.length);
           _state = _state.copyWith(cursorPosition: newPos);
           break;
+        case NewLine():
+          _saveHistory();
+          _state = _state.copyWith(text: '${_state.text}\n');
+          break;
+        case Undo():
+          if (_history.isNotEmpty) {
+            _state = _history.removeLast();
+          }
+          break;
         case OpenModal(modalType: final type):
-             // Defer UI call to post-build or allow here since it's a callback
              Future.microtask(() => showDialog(
                context: context,
                builder: (_) => MatrixDialog(
@@ -117,37 +121,37 @@ class _MathKeyboardSheetState extends State<MathKeyboardSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: DesignColors.scaffoldBackground, // Slightly off-white
+      color: DesignColors.scaffoldBackground,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildHeader(), // White header
-          
+          _buildHeader(),
+
           Container(
             color: Colors.white,
             child: MathInputArea(state: _state),
           ),
-          
-          // Divider or Shadow
+
           Container(height: 1, color: DesignColors.keyBorder),
 
-          // Keyboard Controls
           Container(
             color: DesignColors.scaffoldBackground,
             child: Column(
               children: [
-                MathKeyboardTopbar(onAction: _handleKeyAction),
-                
+                MathKeyboardTopbar(
+                  onAction: _handleKeyAction,
+                  isAlphabetMode: _isAlphabetMode,
+                ),
+
                 const SizedBox(height: 4),
-                
+
                 MathKeyboardSegmentedControl(
                   currentMode: _mode,
                   onModeChanged: (m) => setState(() => _mode = m),
                 ),
-                
+
                 const SizedBox(height: 12),
 
-                // Main Grid
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: DesignSpacing.horizontalPadding,
@@ -157,7 +161,7 @@ class _MathKeyboardSheetState extends State<MathKeyboardSheet> {
                     onKeyAction: _handleKeyAction,
                   ),
                 ),
-                
+
                 SizedBox(height: MediaQuery.of(context).padding.bottom + 8),
               ],
             ),

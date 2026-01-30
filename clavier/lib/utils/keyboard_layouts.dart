@@ -2,9 +2,9 @@ import '../models/keyboard_mode.dart';
 import '../models/key_action.dart';
 import 'math_symbols.dart';
 
-/// Defines the exact 6-column grid layout for each keyboard mode
+/// Defines the exact grid layout for each keyboard mode
 abstract class KeyboardLayouts {
-  
+
   static List<List<KeyDefinition>> getLayout(KeyboardMode mode) {
     switch (mode) {
       case KeyboardMode.basicArithmetic:
@@ -17,6 +17,20 @@ abstract class KeyboardLayouts {
         return _limitsDiffInt;
       case KeyboardMode.alphabet:
         return _alphabet;
+    }
+  }
+
+  /// Returns the number of columns for a given mode
+  static int getColumnCount(KeyboardMode mode) {
+    switch (mode) {
+      case KeyboardMode.trigonometry:
+        return 7;
+      case KeyboardMode.limitsDiffInt:
+        return 5;
+      case KeyboardMode.alphabet:
+        return 8;
+      default:
+        return 6;
     }
   }
 
@@ -47,7 +61,7 @@ abstract class KeyboardLayouts {
       KeyDefinition(label: MathSymbols.minus, action: InsertSymbol('-')),
     ],
     [
-      KeyDefinition(label: 'π', popupItems: ['π', 'e', 'φ'], action: InsertSymbol(MathSymbols.pi)),
+      KeyDefinition(label: 'π', popupItems: ['π', 'π/2', 'π/3'], action: InsertSymbol(MathSymbols.pi)),
       KeyDefinition(label: '%', action: InsertSymbol('%')),
       KeyDefinition(label: '0', action: InsertSymbol('0'), isNumber: true),
       KeyDefinition(label: ',', action: InsertSymbol(',')),
@@ -67,7 +81,7 @@ abstract class KeyboardLayouts {
     ],
     [
       KeyDefinition(label: 'Sub', action: InsertSymbol('_')),
-      KeyDefinition(label: 'f(..)', action: InsertSymbol('(')),
+      KeyDefinition(label: '□(□)', action: InsertTemplate('f()', cursorOffset: 1)),
       KeyDefinition(label: 'log₂', action: InsertTemplate('log2()', cursorOffset: 1)),
       KeyDefinition(label: 'nPk', action: InsertCode('nPr()')),
       KeyDefinition(label: 'z', action: InsertSymbol('z')),
@@ -75,7 +89,7 @@ abstract class KeyboardLayouts {
     ],
     [
       KeyDefinition(label: 'e', action: InsertSymbol('e')),
-      KeyDefinition(label: 'f(x,y)', action: InsertSymbol('f(x,y)')),
+      KeyDefinition(label: '□(□,□)', action: InsertTemplate('f(,)', cursorOffset: 2)),
       KeyDefinition(label: 'logₙ', action: InsertTemplate('log()')),
       KeyDefinition(label: 'nCk', action: InsertCode('nCr()')),
       KeyDefinition(label: 'z̄', action: InsertCode('conjugate()')),
@@ -91,34 +105,75 @@ abstract class KeyboardLayouts {
     ],
   ];
 
+  // Trigonometry: 4 rows × 7 columns
+  static const _trigonometry = [
+    [
+      KeyDefinition(label: 'rad', action: InsertSymbol('rad')),
+      KeyDefinition(label: 'sin', action: InsertTemplate('sin()', cursorOffset: 1)),
+      KeyDefinition(label: 'cos', action: InsertTemplate('cos()', cursorOffset: 1)),
+      KeyDefinition(label: 'tan', action: InsertTemplate('tan()', cursorOffset: 1)),
+      KeyDefinition(label: 'cot', action: InsertTemplate('cot()', cursorOffset: 1)),
+      KeyDefinition(label: 'sec', action: InsertTemplate('sec()', cursorOffset: 1)),
+      KeyDefinition(label: 'csc', action: InsertTemplate('csc()', cursorOffset: 1)),
+    ],
+    [
+      KeyDefinition(label: '□°', action: InsertSymbol('°')),
+      KeyDefinition(label: 'arcsin', action: InsertTemplate('arcsin()', cursorOffset: 1)),
+      KeyDefinition(label: 'arccos', action: InsertTemplate('arccos()', cursorOffset: 1)),
+      KeyDefinition(label: 'arctan', action: InsertTemplate('arctan()', cursorOffset: 1)),
+      KeyDefinition(label: 'arccot', action: InsertTemplate('arccot()', cursorOffset: 1)),
+      KeyDefinition(label: 'arcsec', action: InsertTemplate('arcsec()', cursorOffset: 1)),
+      KeyDefinition(label: 'arccsc', action: InsertTemplate('arccsc()', cursorOffset: 1)),
+    ],
+    [
+      KeyDefinition(label: "□°□'", action: InsertTemplate("°'", cursorOffset: 1)),
+      KeyDefinition(label: 'sinh', action: InsertTemplate('sinh()', cursorOffset: 1)),
+      KeyDefinition(label: 'cosh', action: InsertTemplate('cosh()', cursorOffset: 1)),
+      KeyDefinition(label: 'tanh', action: InsertTemplate('tanh()', cursorOffset: 1)),
+      KeyDefinition(label: 'coth', action: InsertTemplate('coth()', cursorOffset: 1)),
+      KeyDefinition(label: 'sech', action: InsertTemplate('sech()', cursorOffset: 1)),
+      KeyDefinition(label: 'csch', action: InsertTemplate('csch()', cursorOffset: 1)),
+    ],
+    [
+      KeyDefinition(label: '□°□\'□"', action: InsertTemplate('°\'"', cursorOffset: 1)),
+      KeyDefinition(label: 'arsinh', action: InsertTemplate('arsinh()', cursorOffset: 1)),
+      KeyDefinition(label: 'arcosh', action: InsertTemplate('arcosh()', cursorOffset: 1)),
+      KeyDefinition(label: 'artanh', action: InsertTemplate('artanh()', cursorOffset: 1)),
+      KeyDefinition(label: 'arcoth', action: InsertTemplate('arcoth()', cursorOffset: 1)),
+      KeyDefinition(label: 'arsech', action: InsertTemplate('arsech()', cursorOffset: 1)),
+      KeyDefinition(label: 'arcsch', action: InsertTemplate('arcsch()', cursorOffset: 1)),
+    ],
+  ];
+
+  // Calculus: 4 rows × 5 columns
   static const _limitsDiffInt = [
     [
-      KeyDefinition(label: 'lim->', action: InsertTemplate('lim()', cursorOffset: 1)),
+      KeyDefinition(label: 'lim→', action: InsertTemplate('lim()', cursorOffset: 1)),
       KeyDefinition(label: 'd/dx', action: InsertTemplate('diff()', cursorOffset: 1)),
       KeyDefinition(label: '∫dx', action: InsertTemplate('int()', cursorOffset: 1)),
       KeyDefinition(label: 'dy/dx', action: InsertSymbol('dy/dx')),
-      KeyDefinition(label: 'an', action: InsertSymbol('a_n')),
+      KeyDefinition(label: 'aₙ', action: InsertSymbol('a_n')),
     ],
     [
-      KeyDefinition(label: 'lim+', action: InsertTemplate('lim_right()', cursorOffset: 1)),
+      KeyDefinition(label: 'lim⁺', action: InsertTemplate('lim_right()', cursorOffset: 1)),
       KeyDefinition(label: 'd²/dx²', action: InsertTemplate('diff2()', cursorOffset: 1)),
-      KeyDefinition(label: '∫a,b', action: InsertTemplate('int_def()', cursorOffset: 1)),
+      KeyDefinition(label: '∫ₐᵇ', action: InsertTemplate('int_def()', cursorOffset: 1)),
       KeyDefinition(label: 'dx', action: InsertSymbol('dx')),
-      KeyDefinition(label: '...', action: InsertSymbol('...')),
+      KeyDefinition(label: '…', action: InsertSymbol('...')),
     ],
     [
-      KeyDefinition(label: 'lim-', action: InsertTemplate('lim_left()', cursorOffset: 1)),
-      KeyDefinition(label: 'dⁿ', action: InsertTemplate('diff_n()', cursorOffset: 1)),
+      KeyDefinition(label: 'lim⁻', action: InsertTemplate('lim_left()', cursorOffset: 1)),
+      KeyDefinition(label: 'dⁿ/dxⁿ', action: InsertTemplate('diff_n()', cursorOffset: 1)),
       KeyDefinition(label: '∫∫', action: InsertTemplate('int2()', cursorOffset: 1)),
       KeyDefinition(label: 'dy', action: InsertSymbol('dy')),
-      KeyDefinition(label: '', action: InsertSymbol('')), // Empty filler
+      KeyDefinition(label: 'Σ', action: InsertTemplate('sum()', cursorOffset: 1)),
     ],
     [
-      KeyDefinition(label: '∞', action: InsertSymbol('infinity')),
-      KeyDefinition(label: '', action: InsertSymbol('')), // Empty filler
-      KeyDefinition(label: 'Σ', action: InsertTemplate('sum()', cursorOffset: 1)),
+      KeyDefinition(label: '∞', action: InsertSymbol('∞')),
       KeyDefinition(label: "y'", action: InsertSymbol("y'")),
-      KeyDefinition(label: '', action: InsertSymbol('')), // Empty filler
+      KeyDefinition(label: 'Π', action: InsertTemplate('prod()', cursorOffset: 1)),
+      KeyDefinition(label: '∂', action: InsertSymbol('∂')),
+      KeyDefinition(label: '∇', action: InsertSymbol('∇')),
     ],
   ];
 
@@ -156,16 +211,14 @@ abstract class KeyboardLayouts {
     [
       KeyDefinition(label: 'y', action: InsertSymbol('y')),
       KeyDefinition(label: 'z', action: InsertSymbol('z')),
-      KeyDefinition(label: 'α', action: InsertSymbol('alpha')),
-      KeyDefinition(label: 'β', action: InsertSymbol('beta')),
-      KeyDefinition(label: 'θ', action: InsertSymbol('theta')),
-      KeyDefinition(label: 'ρ', action: InsertSymbol('rho')),
-      KeyDefinition(label: 'Φ', action: InsertSymbol('phi')),
+      KeyDefinition(label: 'α', action: InsertSymbol('α')),
+      KeyDefinition(label: 'β', action: InsertSymbol('β')),
+      KeyDefinition(label: 'θ', action: InsertSymbol('θ')),
+      KeyDefinition(label: 'ρ', action: InsertSymbol('ρ')),
+      KeyDefinition(label: 'Φ', action: InsertSymbol('Φ')),
       KeyDefinition(label: '', action: InsertSymbol('')), // Spacer
     ],
   ];
-
-  static const _trigonometry = _functionsLog; // Placeholder
 
 }
 
@@ -173,7 +226,7 @@ class KeyDefinition {
   final String label;
   final KeyAction action;
   final List<String>? popupItems;
-  final bool isHighlighted; 
+  final bool isHighlighted;
   final bool isNumber; // For styling distinction
 
   const KeyDefinition({

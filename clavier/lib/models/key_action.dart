@@ -45,3 +45,11 @@ class SwitchMode extends KeyAction {
   // Implicit action usually handled by UI, but can be explicit key
   const SwitchMode();
 }
+
+class NewLine extends KeyAction {
+  const NewLine();
+}
+
+class Undo extends KeyAction {
+  const Undo();
+}
