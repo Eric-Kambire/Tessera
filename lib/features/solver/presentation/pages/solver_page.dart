@@ -145,7 +145,13 @@ class _SolverPageState extends State<SolverPage> {
                                 return const Center(child: CircularProgressIndicator());
                               }
                           if (state is SolverLoaded) {
-                            return _SolutionView(solution: state.solution);
+                            final sameAsInput = _controller.text.isNotEmpty &&
+                                latexFromRaw(_controller.text) == state.solution.problemLatex;
+                            final hideProblem = _focusNode.hasFocus && sameAsInput;
+                            return _SolutionView(
+                              solution: state.solution,
+                              showProblem: !hideProblem,
+                            );
                           }
                               if (state is SolverError) {
                                 return Padding(
@@ -203,6 +209,7 @@ class _InputCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const inputFontSize = 18.0;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedBuilder(
@@ -213,10 +220,12 @@ class _InputCard extends StatelessWidget {
             duration: const Duration(milliseconds: 180),
             curve: Curves.easeOut,
             width: double.infinity,
+            constraints: const BoxConstraints(minHeight: 60),
+            margin: const EdgeInsets.symmetric(horizontal: 16),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
                   color: focused
@@ -236,67 +245,95 @@ class _InputCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  focused ? 'Saisie active' : 'Entrer une expression',
-                  style: TextStyle(
-                    color: focused ? AppColors.primaryBlue : AppColors.neutralGray,
-                    fontSize: 12,
-                    fontWeight: focused ? FontWeight.w600 : FontWeight.w400,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Stack(
-                  children: [
-                    TextField(
-                      controller: controller,
-                      focusNode: focusNode,
-                      readOnly: true,
-                      showCursor: true,
-                      enableInteractiveSelection: true,
-                      style: const TextStyle(
-                        color: Colors.transparent,
-                        fontSize: 18,
-                      ),
-                      cursorColor: AppColors.tertiaryOrange,
-                      decoration: const InputDecoration(
-                        isDense: true,
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ),
-                    IgnorePointer(
-                      child: ValueListenableBuilder<TextEditingValue>(
-                        valueListenable: controller,
-                        builder: (context, value, _) {
-                          if (value.text.isEmpty) {
-                            return const Text('');
-                          }
-                          return LatexView(latex: latexFromRaw(value.text));
-                        },
-                      ),
-                    ),
-                    if (controller.text.isNotEmpty)
-                      Positioned(
-                        right: 0,
-                        top: 0,
-                        child: IconButton(
-                          visualDensity: VisualDensity.compact,
-                          icon: const Icon(Icons.clear, size: 18),
-                          onPressed: onClear,
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final trailingWidth = (controller.text.isNotEmpty || focused) ? 36.0 : 0.0;
+                    return SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                        child: IntrinsicWidth(
+                          child: Row(
+                            children: [
+                              ConstrainedBox(
+                                constraints: BoxConstraints(minWidth: constraints.maxWidth - trailingWidth),
+                                child: IntrinsicWidth(
+                                  child: TextField(
+                                    controller: controller,
+                                    focusNode: focusNode,
+                                    readOnly: true,
+                                    maxLines: 1,
+                                    showCursor: true,
+                                    enableInteractiveSelection: true,
+                                    style: const TextStyle(
+                                      fontSize: inputFontSize,
+                                      fontFamily: 'Courier New',
+                                      fontFamilyFallback: ['Menlo', 'Consolas', 'monospace'],
+                                    ),
+                                    cursorHeight: inputFontSize,
+                                    cursorWidth: 1.2,
+                                    cursorColor: AppColors.tertiaryOrange,
+                                    decoration: const InputDecoration(
+                                      isDense: true,
+                                      border: InputBorder.none,
+                                      contentPadding: EdgeInsets.zero,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              if (focused)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 8),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        width: 6,
+                                        height: 6,
+                                        decoration: const BoxDecoration(
+                                          color: Color(0xFF16A34A),
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      const Text(
+                                        'live',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: AppColors.neutralGray,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              if (controller.text.isNotEmpty)
+                                IconButton(
+                                  visualDensity: VisualDensity.compact,
+                                  icon: const Icon(Icons.clear, size: 18),
+                                  onPressed: onClear,
+                                ),
+                            ],
+                          ),
                         ),
                       ),
-                  ],
+                    );
+                  },
                 ),
-                if (focused)
-                  Container(
-                    margin: const EdgeInsets.only(top: 6),
-                    height: 2,
-                    width: 48,
-                    decoration: BoxDecoration(
-                      color: AppColors.tertiaryOrange,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
+                const SizedBox(height: 8),
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 180),
+                  curve: Curves.easeOut,
+                  child: ValueListenableBuilder<TextEditingValue>(
+                    valueListenable: controller,
+                    builder: (context, value, _) {
+                      if (value.text.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+                      return LatexView(latex: latexFromRaw(value.text));
+                    },
                   ),
+                ),
                 if (controller.text.isEmpty && hint.isNotEmpty) ...[
                   const SizedBox(height: 6),
                   Text(hint, style: const TextStyle(color: AppColors.neutralGray)),
@@ -312,18 +349,24 @@ class _InputCard extends StatelessWidget {
 
 class _SolutionView extends StatelessWidget {
   final MathSolution solution;
+  final bool showProblem;
 
-  const _SolutionView({required this.solution});
+  const _SolutionView({
+    required this.solution,
+    required this.showProblem,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Probleme', style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: 8),
-        LatexView(latex: solution.problemLatex),
-        const SizedBox(height: 16),
+        if (showProblem) ...[
+          Text('Probleme', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 8),
+          LatexView(latex: solution.problemLatex),
+          const SizedBox(height: 16),
+        ],
         ListView.builder(
           itemCount: solution.steps.length,
           shrinkWrap: true,
