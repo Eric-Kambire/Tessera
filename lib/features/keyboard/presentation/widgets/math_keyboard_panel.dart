@@ -41,11 +41,10 @@ class _MathKeyboardPanelState extends State<MathKeyboardPanel> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
-        final bottomInset = MediaQuery.of(context).padding.bottom;
         final screenHeight = MediaQuery.of(context).size.height;
         final desiredHeight = screenHeight * 0.45;
         final maxHeight = constraints.hasBoundedHeight ? constraints.maxHeight : desiredHeight;
-        final baseHeight = math.max(0.0, math.min(desiredHeight, maxHeight - bottomInset));
+        final baseHeight = math.max(0.0, math.min(desiredHeight, maxHeight));
         final heightScale = targetTotal == 0 ? 1.0 : baseHeight / targetTotal;
         final widthScale = desiredGridWidth == 0 ? 1.0 : width / desiredGridWidth;
         final scale = math.min(1.0, math.min(heightScale, widthScale));
@@ -54,7 +53,6 @@ class _MathKeyboardPanelState extends State<MathKeyboardPanel> {
         final pillsHeight = pillsTarget * scale;
         final dividerHeight = dividerTarget * scale;
         final gridHeight = math.max(0.0, baseHeight - headerHeight - pillsHeight - dividerHeight);
-        final panelHeight = baseHeight + bottomInset;
 
         const gridSpacing = 1.0;
         final itemExtent = math.max(
@@ -72,7 +70,7 @@ class _MathKeyboardPanelState extends State<MathKeyboardPanel> {
         return SafeArea(
           top: false,
           child: Container(
-            height: panelHeight,
+            height: constraints.maxHeight,
             decoration: const BoxDecoration(
               color: Color(0xFFF2F2F7),
               borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
@@ -106,8 +104,7 @@ class _MathKeyboardPanelState extends State<MathKeyboardPanel> {
                     },
                   ),
                 ),
-                SizedBox(
-                  height: gridHeight,
+                Expanded(
                   child: Center(
                     child: SizedBox(
                       width: math.min(width, gridWidth),
@@ -131,7 +128,6 @@ class _MathKeyboardPanelState extends State<MathKeyboardPanel> {
                     ),
                   ),
                 ),
-                if (bottomInset > 0) SizedBox(height: bottomInset),
               ],
             ),
           ),

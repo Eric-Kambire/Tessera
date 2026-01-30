@@ -112,78 +112,98 @@ class _SolverPageState extends State<SolverPage> {
             appBar: AppBar(
               title: const Text('Tessera'),
             ),
-            body: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFFF7FBFF),
-                    Color(0xFFFFFFFF),
-                  ],
-                ),
-              ),
-              child: Column(
-                children: [
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+            body: LayoutBuilder(
+              builder: (context, constraints) {
+                const solveButtonHeight = 52.0;
+                const solveButtonPadding = 20.0;
+                final keyboardHeight = MediaQuery.of(context).size.height * 0.45;
+                return Column(
+                  children: [
+                    Expanded(
+                      child: Stack(
                         children: [
-                          _InputCard(
-                            controller: _controller,
-                            focusNode: _focusNode,
-                            hint: _inlineHint,
-                            onTap: () => _focusNode.requestFocus(),
-                            onClear: () => _clear(),
-                          ),
-                          const SizedBox(height: 12),
-                          BlocBuilder<SolverBloc, SolverState>(
-                            builder: (context, state) {
-                              if (state is SolverLoading) {
-                                return const Center(child: CircularProgressIndicator());
-                              }
-                          if (state is SolverLoaded) {
-                            final sameAsInput = _controller.text.isNotEmpty &&
-                                latexFromRaw(_controller.text) == state.solution.problemLatex;
-                            final hideProblem = _focusNode.hasFocus && sameAsInput;
-                            return _SolutionView(
-                              solution: state.solution,
-                              showProblem: !hideProblem,
-                            );
-                          }
-                              if (state is SolverError) {
-                                return Padding(
-                                  padding: const EdgeInsets.only(top: 8),
-                                  child: Text(
-                                    state.message,
-                                    style: const TextStyle(color: AppColors.tertiaryOrange),
+                          Container(
+                            color: Colors.white,
+                            child: SingleChildScrollView(
+                              padding: const EdgeInsets.fromLTRB(
+                                16,
+                                16,
+                                16,
+                                solveButtonHeight + solveButtonPadding,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _MathCanvas(
+                                    controller: _controller,
+                                    focusNode: _focusNode,
+                                    hint: _inlineHint,
+                                    onTap: () => _focusNode.requestFocus(),
+                                    onClear: _clear,
                                   ),
-                                );
-                              }
-                              return const Padding(
-                                padding: EdgeInsets.only(top: 8),
-                                child: Text('Entrez une equation pour commencer.'),
-                              );
-                            },
+                                  const SizedBox(height: 12),
+                                  BlocBuilder<SolverBloc, SolverState>(
+                                    builder: (context, state) {
+                                      if (state is SolverLoading) {
+                                        return const Center(child: CircularProgressIndicator());
+                                      }
+                                      if (state is SolverLoaded) {
+                                        final sameAsInput = _controller.text.isNotEmpty &&
+                                            latexFromRaw(_controller.text) == state.solution.problemLatex;
+                                        final hideProblem = _focusNode.hasFocus && sameAsInput;
+                                        return _SolutionView(
+                                          solution: state.solution,
+                                          showProblem: !hideProblem,
+                                        );
+                                      }
+                                      if (state is SolverError) {
+                                        return Padding(
+                                          padding: const EdgeInsets.only(top: 8),
+                                          child: Text(
+                                            state.message,
+                                            style: const TextStyle(color: AppColors.tertiaryOrange),
+                                          ),
+                                        );
+                                      }
+                                      return const Padding(
+                                        padding: EdgeInsets.only(top: 8),
+                                        child: Text('Entrez une equation pour commencer.'),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            left: 16,
+                            right: 16,
+                            bottom: 12,
+                            child: _SolvePill(
+                              onPressed: () {
+                                context.read<SolverBloc>().add(SolveRequested(_controller.text));
+                              },
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                  MathKeyboardPanel(
-                    onInsert: _insert,
-                    onBackspace: _backspace,
-                    onClear: _clear,
-                    onCursorLeft: () => _moveCursor(-1),
-                    onCursorRight: () => _moveCursor(1),
-                    onSubmit: () {
-                      context.read<SolverBloc>().add(SolveRequested(_controller.text));
-                    },
-                  ),
-                ],
-              ),
+                    SizedBox(
+                      height: keyboardHeight,
+                      child: MathKeyboardPanel(
+                        onInsert: _insert,
+                        onBackspace: _backspace,
+                        onClear: _clear,
+                        onCursorLeft: () => _moveCursor(-1),
+                        onCursorRight: () => _moveCursor(1),
+                        onSubmit: () {
+                          context.read<SolverBloc>().add(SolveRequested(_controller.text));
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           );
         },
@@ -192,14 +212,14 @@ class _SolverPageState extends State<SolverPage> {
   }
 }
 
-class _InputCard extends StatelessWidget {
+class _MathCanvas extends StatelessWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
   final String hint;
   final VoidCallback onTap;
   final VoidCallback onClear;
 
-  const _InputCard({
+  const _MathCanvas({
     required this.controller,
     required this.focusNode,
     required this.hint,
@@ -209,139 +229,79 @@ class _InputCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const inputFontSize = 18.0;
+    const inputFontSize = 32.0;
     return GestureDetector(
       onTap: onTap,
-      child: AnimatedBuilder(
-        animation: focusNode,
-        builder: (context, _) {
-          final focused = focusNode.hasFocus;
-          return AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            curve: Curves.easeOut,
-            width: double.infinity,
-            constraints: const BoxConstraints(minHeight: 60),
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: focused
-                      ? AppColors.primaryBlue.withOpacity(0.18)
-                      : Colors.black.withOpacity(0.05),
-                  blurRadius: focused ? 18 : 12,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-              border: Border.all(
-                color: focused
-                    ? AppColors.primaryBlue.withOpacity(0.55)
-                    : AppColors.primaryBlue.withOpacity(0.15),
-                width: focused ? 1.2 : 1,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final trailingWidth = (controller.text.isNotEmpty || focused) ? 36.0 : 0.0;
-                    return SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                        child: IntrinsicWidth(
-                          child: Row(
-                            children: [
-                              ConstrainedBox(
-                                constraints: BoxConstraints(minWidth: constraints.maxWidth - trailingWidth),
-                                child: IntrinsicWidth(
-                                  child: TextField(
-                                    controller: controller,
-                                    focusNode: focusNode,
-                                    readOnly: true,
-                                    maxLines: 1,
-                                    showCursor: true,
-                                    enableInteractiveSelection: true,
-                                    style: const TextStyle(
-                                      fontSize: inputFontSize,
-                                      fontFamily: 'Courier New',
-                                      fontFamilyFallback: ['Menlo', 'Consolas', 'monospace'],
-                                    ),
-                                    cursorHeight: inputFontSize,
-                                    cursorWidth: 1.2,
-                                    cursorColor: AppColors.tertiaryOrange,
-                                    decoration: const InputDecoration(
-                                      isDense: true,
-                                      border: InputBorder.none,
-                                      contentPadding: EdgeInsets.zero,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              if (focused)
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 8),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Container(
-                                        width: 6,
-                                        height: 6,
-                                        decoration: const BoxDecoration(
-                                          color: Color(0xFF16A34A),
-                                          shape: BoxShape.circle,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 6),
-                                      const Text(
-                                        'live',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          color: AppColors.neutralGray,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              if (controller.text.isNotEmpty)
-                                IconButton(
-                                  visualDensity: VisualDensity.compact,
-                                  icon: const Icon(Icons.clear, size: 18),
-                                  onPressed: onClear,
-                                ),
-                            ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                  child: IntrinsicWidth(
+                    child: Stack(
+                      alignment: Alignment.centerLeft,
+                      children: [
+                        SizedBox(
+                          width: constraints.maxWidth,
+                          child: TextField(
+                            controller: controller,
+                            focusNode: focusNode,
+                            readOnly: true,
+                            maxLines: 1,
+                            showCursor: true,
+                            enableInteractiveSelection: true,
+                            style: const TextStyle(
+                              color: Colors.transparent,
+                              fontSize: inputFontSize,
+                              fontFamily: 'Times New Roman',
+                              fontWeight: FontWeight.w400,
+                            ),
+                            cursorHeight: inputFontSize,
+                            cursorWidth: 1.4,
+                            cursorColor: AppColors.blackText,
+                            decoration: const InputDecoration(
+                              isDense: true,
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.zero,
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 8),
-                AnimatedSize(
-                  duration: const Duration(milliseconds: 180),
-                  curve: Curves.easeOut,
-                  child: ValueListenableBuilder<TextEditingValue>(
-                    valueListenable: controller,
-                    builder: (context, value, _) {
-                      if (value.text.isEmpty) {
-                        return const SizedBox.shrink();
-                      }
-                      return LatexView(latex: latexFromRaw(value.text));
-                    },
+                        IgnorePointer(
+                          child: ValueListenableBuilder<TextEditingValue>(
+                            valueListenable: controller,
+                            builder: (context, value, _) {
+                              if (value.text.isEmpty) {
+                                return const SizedBox.shrink();
+                              }
+                              return LatexView(latex: latexFromRaw(value.text));
+                            },
+                          ),
+                        ),
+                        if (controller.text.isNotEmpty)
+                          Positioned(
+                            right: 0,
+                            child: IconButton(
+                              visualDensity: VisualDensity.compact,
+                              icon: const Icon(Icons.clear, size: 18),
+                              onPressed: onClear,
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
-                if (controller.text.isEmpty && hint.isNotEmpty) ...[
-                  const SizedBox(height: 6),
-                  Text(hint, style: const TextStyle(color: AppColors.neutralGray)),
-                ],
-              ],
-            ),
-          );
-        },
+              );
+            },
+          ),
+          if (controller.text.isEmpty && hint.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(hint, style: const TextStyle(color: AppColors.neutralGray)),
+          ],
+        ],
       ),
     );
   }
@@ -380,6 +340,30 @@ class _SolutionView extends StatelessWidget {
         ),
         ResultCard(solution: solution),
       ],
+    );
+  }
+}
+
+class _SolvePill extends StatelessWidget {
+  final VoidCallback onPressed;
+
+  const _SolvePill({required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 52,
+      child: ElevatedButton.icon(
+        onPressed: onPressed,
+        icon: const Icon(Icons.arrow_forward, size: 18),
+        label: const Text('Montrer la solution'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFFD7263D),
+          foregroundColor: Colors.white,
+          shape: const StadiumBorder(),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+      ),
     );
   }
 }
