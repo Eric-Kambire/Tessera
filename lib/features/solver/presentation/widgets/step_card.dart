@@ -26,30 +26,23 @@ class StepCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                LatexView(
+                  latex: step.outputLatex,
+                  textStyle: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
                 Row(
-                  children: const [
-                    _Dot(color: AppColors.primaryBlue),
-                    SizedBox(width: 8),
-                    Text('Input', style: TextStyle(color: AppColors.neutralGray)),
+                  children: [
+                    const Icon(Icons.expand_more, size: 18, color: AppColors.neutralGray),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        step.description,
+                        style: const TextStyle(color: AppColors.neutralGray),
+                      ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 6),
-                LatexView(latex: step.inputLatex),
-                const SizedBox(height: 10),
-                Text(
-                  step.description,
-                  style: const TextStyle(color: AppColors.neutralGray),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: const [
-                    _Dot(color: AppColors.secondaryGreen),
-                    SizedBox(width: 8),
-                    Text('Output', style: TextStyle(color: AppColors.neutralGray)),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                LatexView(latex: step.outputLatex),
               ],
             ),
           ),
@@ -58,13 +51,18 @@ class StepCard extends StatelessWidget {
     );
 
     if (step.subSteps.isEmpty) {
-      return card;
+      return Column(
+        children: [
+          card,
+          const Divider(height: 1, indent: 16, endIndent: 16),
+        ],
+      );
     }
 
     return ExpansionTile(
       tilePadding: EdgeInsets.only(left: indent),
-      title: Text(step.description, style: const TextStyle(color: AppColors.neutralGray)),
-      subtitle: const Text('Voir les sous-etapes', style: TextStyle(color: AppColors.neutralGray)),
+      title: LatexView(latex: step.outputLatex),
+      subtitle: Text(step.description, style: const TextStyle(color: AppColors.neutralGray)),
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 12),
@@ -76,21 +74,6 @@ class StepCard extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _Dot extends StatelessWidget {
-  final Color color;
-
-  const _Dot({required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 8,
-      height: 8,
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }
 }
