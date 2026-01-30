@@ -34,6 +34,11 @@ migrate_working_dir/
 /coverage/
 /math_build/
 
+# Local planning docs (not tracked)
+Plan Développement Application Mathématique Flutte. General A LIRE.docx
+Plan de Développement _ Math Solver Flutter Offline (1).md
+Structure JSON pour Mathsteps.docx
+
 # Symbolication related
 app.*.symbols
 
