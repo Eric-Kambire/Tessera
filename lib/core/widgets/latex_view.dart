@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 
 class LatexView extends StatelessWidget {
@@ -17,10 +17,13 @@ class LatexView extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    return Math.tex(
-      latex,
-      textStyle: textStyle ?? Theme.of(context).textTheme.bodyMedium,
-      mathStyle: MathStyle.text,
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Math.tex(
+        latex,
+        textStyle: textStyle ?? Theme.of(context).textTheme.bodyMedium,
+        mathStyle: MathStyle.text,
+      ),
     );
   }
 }
