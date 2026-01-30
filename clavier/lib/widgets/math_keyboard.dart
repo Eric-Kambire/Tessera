@@ -20,21 +20,37 @@ class MathKeyboard extends StatelessWidget {
     final layout = KeyboardLayouts.getLayout(mode);
     final colCount = KeyboardLayouts.getColumnCount(mode);
 
-    // For trigonometry (7 cols), wrap in horizontal scroll
-    if (mode == KeyboardMode.trigonometry) {
-      return SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: SizedBox(
-          width: colCount * 80.0, // Fixed width per key for trig
-          child: _buildGrid(layout),
-        ),
-      );
-    }
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableWidth = constraints.maxWidth;
+        final keyHeight = DesignSpacing.adaptiveKeyHeight(availableWidth, colCount);
+        final fontSize = DesignSpacing.adaptiveFontSize(availableWidth, colCount);
 
-    return _buildGrid(layout);
+        // For trigonometry (7 cols), use horizontal scroll if keys would be too small
+        if (mode == KeyboardMode.trigonometry) {
+          // Minimum comfortable key width ~55px
+          final keyWidthIfFit = (availableWidth - DesignSpacing.keySpacing * colCount) / colCount;
+          if (keyWidthIfFit < 55) {
+            // Need scroll — compute a comfortable total width
+            final scrollWidth = colCount * 68.0 + DesignSpacing.keySpacing * colCount;
+            final scrollFontSize = DesignSpacing.adaptiveFontSize(scrollWidth, colCount);
+            final scrollKeyHeight = DesignSpacing.adaptiveKeyHeight(scrollWidth, colCount);
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: SizedBox(
+                width: scrollWidth,
+                child: _buildGrid(layout, scrollKeyHeight, scrollFontSize),
+              ),
+            );
+          }
+        }
+
+        return _buildGrid(layout, keyHeight, fontSize);
+      },
+    );
   }
 
-  Widget _buildGrid(List<List<KeyDefinition>> layout) {
+  Widget _buildGrid(List<List<KeyDefinition>> layout, double keyHeight, double fontSize) {
     return Column(
       children: layout.map((row) {
         return Padding(
@@ -45,9 +61,10 @@ class MathKeyboard extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: DesignSpacing.keySpacing / 2),
                   child: SizedBox(
-                    height: DesignSpacing.keyHeight,
+                    height: keyHeight,
                     child: MathKey(
                       definition: keyDef,
+                      fontSize: fontSize,
                       onTap: () => onKeyAction(keyDef.action),
                       onVariantSelected: (variant) => _handleVariant(variant, onKeyAction),
                     ),

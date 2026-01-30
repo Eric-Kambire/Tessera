@@ -7,12 +7,14 @@ class MathKey extends StatefulWidget {
   final KeyDefinition definition;
   final VoidCallback onTap;
   final ValueChanged<String>? onVariantSelected;
+  final double fontSize;
 
   const MathKey({
     super.key,
     required this.definition,
     required this.onTap,
     this.onVariantSelected,
+    this.fontSize = 20,
   });
 
   @override
@@ -100,13 +102,18 @@ class _MathKeyState extends State<MathKey> {
       return const FractionIcon();
     }
     // Add other custom icons here if needed
-    
-    return Text(
-      widget.definition.label,
-      style: TextStyle(
-        fontSize: 20,
-        fontWeight: (isNumber || isHighlighted) ? FontWeight.w600 : FontWeight.w400,
-        color: isHighlighted ? DesignColors.redAccent : DesignColors.primaryText,
+
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Text(
+        widget.definition.label,
+        style: TextStyle(
+          fontSize: widget.fontSize,
+          fontWeight: (isNumber || isHighlighted) ? FontWeight.w600 : FontWeight.w400,
+          color: isHighlighted ? DesignColors.redAccent : DesignColors.primaryText,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
