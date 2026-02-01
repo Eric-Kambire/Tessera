@@ -181,24 +181,16 @@ class _KeyboardHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        alignment: Alignment.centerLeft,
-        child: Row(
-          children: [
-            _HeaderPill(active: alphaActive, label: 'abc', onTap: onAlphaToggle),
-            const SizedBox(width: 16),
-            _HeaderIcon(icon: Icons.history, onTap: () {}),
-            const SizedBox(width: 16),
-            _HeaderIcon(icon: Icons.arrow_back_ios_new, onTap: onCursorLeft),
-            const SizedBox(width: 16),
-            _HeaderIcon(icon: Icons.arrow_forward_ios, onTap: onCursorRight),
-            const SizedBox(width: 16),
-            _HeaderIcon(icon: Icons.keyboard_return, onTap: onReturn),
-            const SizedBox(width: 16),
-            _HeaderIcon(icon: Icons.backspace_outlined, onTap: onBackspace),
-          ],
-        ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _HeaderPill(active: alphaActive, label: 'abc', onTap: onAlphaToggle),
+          _HeaderIcon(icon: Icons.history, onTap: () {}),
+          _HeaderIcon(icon: Icons.arrow_back_ios_new, onTap: onCursorLeft),
+          _HeaderIcon(icon: Icons.arrow_forward_ios, onTap: onCursorRight),
+          _HeaderIcon(icon: Icons.keyboard_return, onTap: onReturn),
+          _HeaderIcon(icon: Icons.backspace_outlined, onTap: onBackspace),
+        ],
       ),
     );
   }
@@ -260,20 +252,18 @@ class _KeyboardPills extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        alignment: Alignment.centerLeft,
-        child: Row(
-          children: List.generate(_pillLabels.length, (i) {
-            final active = i == index;
-            final label = _pillLabels[i];
-            return Padding(
-              padding: EdgeInsets.only(right: i == _pillLabels.length - 1 ? 0 : 8),
+      child: Row(
+        children: List.generate(_pillLabels.length, (i) {
+          final active = i == index;
+          final label = _pillLabels[i];
+          return Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(right: i == _pillLabels.length - 1 ? 0 : 6),
               child: GestureDetector(
                 onTap: () => onChanged(i),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 120),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                   decoration: BoxDecoration(
                     color: active ? Colors.black : Colors.white,
                     borderRadius: BorderRadius.circular(12),
@@ -282,25 +272,31 @@ class _KeyboardPills extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(label.top,
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: active ? FontWeight.w600 : FontWeight.w400,
-                            color: active ? Colors.white : const Color(0xFF1D1D1F),
-                          )),
-                      Text(label.bottom,
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: active ? FontWeight.w600 : FontWeight.w400,
-                            color: active ? Colors.white : const Color(0xFF1D1D1F),
-                          )),
+                      Text(
+                        label.top,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: active ? FontWeight.w600 : FontWeight.w400,
+                          color: active ? Colors.white : const Color(0xFF1D1D1F),
+                        ),
+                      ),
+                      Text(
+                        label.bottom,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: active ? FontWeight.w600 : FontWeight.w400,
+                          color: active ? Colors.white : const Color(0xFF1D1D1F),
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ),
-            );
-          }),
-        ),
+            ),
+          );
+        }),
       ),
     );
   }

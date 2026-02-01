@@ -6,8 +6,12 @@ import '../../domain/repositories/solver_repository.dart';
 import '../../domain/services/ido_validation_service.dart';
 import '../../domain/services/latex_change_highlighter.dart';
 import '../../domain/services/step_description_mapper.dart';
+import '../../domain/services/remarkable_identity_solver.dart';
+import '../../domain/services/fraction_solver.dart';
 import '../../../../core/errors/failures.dart';
 import '../datasources/math_engine_service.dart';
+import '../../../../core/utils/math_input_normalizer.dart';
+import '../../domain/services/quadratic_solver.dart';
 import '../models/engine_solution_model.dart';
 import '../models/engine_step_model.dart';
 
@@ -27,7 +31,21 @@ class SolverRepositoryImpl implements SolverRepository {
 
   @override
   Future<MathSolution> solveLatex(String latex) async {
-    final rawJson = await engine.solveLatex(latex);
+    final normalized = normalizeForEngine(latex);
+    final identity = RemarkableIdentitySolver.trySolve(latex);
+    if (identity != null) {
+      return identity;
+    }
+    final fraction = FractionSolver.trySolve(latex);
+    if (fraction != null) {
+      return fraction;
+    }
+    final quadratic = QuadraticSolver.trySolve(latex, normalized);
+    if (quadratic != null) {
+      return quadratic;
+    }
+
+    final rawJson = await engine.solveLatex(normalized);
     final Map<String, dynamic> decoded = json.decode(rawJson) as Map<String, dynamic>;
     if (decoded['error'] == true) {
       final message = decoded['message'] as String? ?? 'Erreur de resolution.';
