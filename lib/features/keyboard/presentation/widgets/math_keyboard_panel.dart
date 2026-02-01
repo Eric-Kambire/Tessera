@@ -1,4 +1,5 @@
-﻿import 'dart:math' as math;
+import 'dart:math' as math;
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import 'math_key.dart';
@@ -83,6 +84,7 @@ class _MathKeyboardPanelState extends State<MathKeyboardPanel> {
                 SizedBox(
                   height: headerHeight,
                   child: _KeyboardHeader(
+                    scale: scale,
                     alphaActive: _alphaMode,
                     onAlphaToggle: () => setState(() => _alphaMode = !_alphaMode),
                     onCursorLeft: widget.onCursorLeft,
@@ -161,6 +163,7 @@ class _MathKeyboardPanelState extends State<MathKeyboardPanel> {
 }
 
 class _KeyboardHeader extends StatelessWidget {
+  final double scale;
   final bool alphaActive;
   final VoidCallback onAlphaToggle;
   final VoidCallback onCursorLeft;
@@ -169,6 +172,7 @@ class _KeyboardHeader extends StatelessWidget {
   final VoidCallback onBackspace;
 
   const _KeyboardHeader({
+    required this.scale,
     required this.alphaActive,
     required this.onAlphaToggle,
     required this.onCursorLeft,
@@ -179,17 +183,22 @@ class _KeyboardHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gap = 16.0 * scale;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _HeaderPill(active: alphaActive, label: 'abc', onTap: onAlphaToggle),
-          _HeaderIcon(icon: Icons.history, onTap: () {}),
-          _HeaderIcon(icon: Icons.arrow_back_ios_new, onTap: onCursorLeft),
-          _HeaderIcon(icon: Icons.arrow_forward_ios, onTap: onCursorRight),
-          _HeaderIcon(icon: Icons.keyboard_return, onTap: onReturn),
-          _HeaderIcon(icon: Icons.backspace_outlined, onTap: onBackspace),
+          SizedBox(width: gap),
+          _HeaderIcon(icon: CupertinoIcons.clock, onTap: () {}),
+          SizedBox(width: gap),
+          _HeaderIcon(icon: CupertinoIcons.chevron_left, onTap: onCursorLeft),
+          SizedBox(width: gap),
+          _HeaderIcon(icon: CupertinoIcons.chevron_right, onTap: onCursorRight),
+          SizedBox(width: gap),
+          _HeaderIcon(icon: CupertinoIcons.arrow_turn_down_left, onTap: onReturn),
+          SizedBox(width: gap),
+          _HeaderIcon(icon: CupertinoIcons.delete_left, onTap: onBackspace),
         ],
       ),
     );

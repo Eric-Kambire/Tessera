@@ -29,7 +29,7 @@ class MathKey extends StatelessWidget {
 
     final baseColor = foreground ?? AppColors.blackText;
 
-    final clampedScale = scale.clamp(0.7, 1.0);
+    final clampedScale = scale.clamp(0.85, 1.05);
 
     return Material(
       color: Colors.transparent,
@@ -41,11 +41,11 @@ class MathKey extends StatelessWidget {
         highlightColor: AppColors.primaryBlue.withOpacity(0.08),
         child: Container(
           alignment: Alignment.center,
-          padding: EdgeInsets.all(3 * clampedScale),
+          padding: EdgeInsets.all(4 * clampedScale),
           decoration: BoxDecoration(
             color: background ?? AppColors.white,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.neutralGray.withOpacity(0.25), width: 0.5),
+            border: Border.all(color: AppColors.neutralGray.withOpacity(0.18), width: 0.5),
           ),
           child: Stack(
             children: [
@@ -84,26 +84,43 @@ class _LabelText extends StatelessWidget {
     final hasPlaceholder = parts.contains('□');
 
     final baseStyle = TextStyle(
-      fontSize: (_isNumeric(label) ? 15 : 13) * scale,
+      fontSize: (_isNumeric(label) ? 16 : 14) * scale,
       fontWeight: _isNumeric(label) ? FontWeight.w600 : FontWeight.w400,
       color: color,
+      height: 1.05,
+      letterSpacing: 0.2 * scale,
     );
 
     if (!hasPlaceholder) {
-      return Text(label, style: baseStyle, textAlign: TextAlign.center);
+      return FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(label, style: baseStyle, textAlign: TextAlign.center),
+      );
     }
 
-    return Wrap(
-      alignment: WrapAlignment.center,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: 2,
-      runSpacing: 0,
-      children: parts.map((ch) {
-        if (ch == '□') {
-          return _PlaceholderBox(scale: scale);
-        }
-        return Text(ch, style: baseStyle);
-      }).toList(),
+    final spans = <InlineSpan>[];
+    for (final ch in parts) {
+      if (ch == '□') {
+        spans.add(
+          WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 1),
+              child: _PlaceholderBox(scale: scale),
+            ),
+          ),
+        );
+      } else {
+        spans.add(TextSpan(text: ch, style: baseStyle));
+      }
+    }
+
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Text.rich(
+        TextSpan(children: spans),
+        textAlign: TextAlign.center,
+      ),
     );
   }
 
@@ -120,7 +137,7 @@ class _PlaceholderBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      size: Size(10 * scale, 10 * scale),
+      size: Size(11 * scale, 11 * scale),
       painter: _DashedBoxPainter(color: const Color(0xFF999999)),
     );
   }

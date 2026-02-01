@@ -1,8 +1,10 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/services.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/latex_view.dart';
 import '../../../../core/utils/latex_input_formatter.dart';
+import '../widgets/math_editor.dart';
 import '../../../../injector.dart';
 import '../../../keyboard/presentation/widgets/math_keyboard_panel.dart';
 import '../../domain/entities/math_solution.dart';
@@ -19,36 +21,44 @@ class SolverPage extends StatefulWidget {
 }
 
 class _SolverPageState extends State<SolverPage> {
-  final TextEditingController _controller = TextEditingController(text: '2x + 4 = 10');
-  final FocusNode _focusNode = FocusNode();
+  final MathEditorController _mathController = MathEditorController();
   String _inlineHint = 'Ex: 2x + 4 = 10';
   bool _canvasExpanded = false;
+  bool _isEditing = false;
 
   @override
   void dispose() {
-    _controller.dispose();
-    _focusNode.dispose();
+    _mathController.dispose();
     super.dispose();
   }
 
   void _insert(KeyboardInsert insert) {
-    final value = _controller.value;
-    final selection = value.selection.isValid
-        ? value.selection
-        : TextSelection.collapsed(offset: value.text.length);
-    final start = selection.start;
-    final end = selection.end;
-
-    final newText = value.text.replaceRange(start, end, insert.text);
-    var offset = start + insert.text.length;
-    if (insert.selectionBackOffset != null) {
-      offset = (offset - insert.selectionBackOffset!).clamp(0, newText.length);
+    final text = insert.text;
+    if (text == 'frac(,)' || text == '()/()') {
+      _mathController.insertFraction();
+    } else if (text == '()') {
+      _mathController.insertGroup();
+    } else if (text.startsWith('sqrt') || text.startsWith('cbrt') || text.startsWith('root')) {
+      _mathController.insertSqrt();
+    } else if (text.startsWith('int')) {
+      _mathController.insertIntegral();
+    } else if (text.startsWith('sin')) {
+      _mathController.insertFunction('sin');
+    } else if (text.startsWith('cos')) {
+      _mathController.insertFunction('cos');
+    } else if (text.startsWith('tan')) {
+      _mathController.insertFunction('tan');
+    } else if (text.startsWith('log')) {
+      _mathController.insertFunction('log');
+    } else if (text.startsWith('ln')) {
+      _mathController.insertFunction('ln');
+    } else if (text.startsWith('abs')) {
+      _mathController.insertAbsolute();
+    } else if (text.startsWith('^')) {
+      _mathController.insertPower();
+    } else {
+      _mathController.insertText(text);
     }
-
-    _controller.value = TextEditingValue(
-      text: newText,
-      selection: TextSelection.collapsed(offset: offset),
-    );
     if (_inlineHint.isNotEmpty) {
       setState(() {
         _inlineHint = '';
@@ -57,51 +67,18 @@ class _SolverPageState extends State<SolverPage> {
   }
 
   void _backspace() {
-    final value = _controller.value;
-    if (value.text.isEmpty) return;
-
-    final selection = value.selection.isValid
-        ? value.selection
-        : TextSelection.collapsed(offset: value.text.length);
-
-    if (!selection.isCollapsed) {
-      final newText = value.text.replaceRange(selection.start, selection.end, '');
-      _controller.value = TextEditingValue(
-        text: newText,
-        selection: TextSelection.collapsed(offset: selection.start),
-      );
-      return;
-    }
-
-    if (selection.start == 0) return;
-    final newText = value.text.replaceRange(selection.start - 1, selection.start, '');
-    _controller.value = TextEditingValue(
-      text: newText,
-      selection: TextSelection.collapsed(offset: selection.start - 1),
-    );
+    _mathController.backspace();
   }
 
   void _clear() {
-    _controller.clear();
+    _mathController.clear();
     setState(() {
       _inlineHint = 'Ex: 2x + 4 = 10';
     });
   }
 
   void _moveCursor(int delta) {
-    final value = _controller.value;
-    final selection = value.selection.isValid
-        ? value.selection
-        : TextSelection.collapsed(offset: value.text.length);
-    var next = (selection.extentOffset + delta).clamp(0, value.text.length);
-    if (delta > 0 && next < value.text.length && value.text[next] == ',') {
-      next = (next + 1).clamp(0, value.text.length);
-    } else if (delta < 0 && next > 0 && value.text[next - 1] == ',') {
-      next = (next - 1).clamp(0, value.text.length);
-    }
-    _controller.value = value.copyWith(
-      selection: TextSelection.collapsed(offset: next),
-    );
+    _mathController.moveCursor(delta);
   }
 
   @override
@@ -136,12 +113,28 @@ class _SolverPageState extends State<SolverPage> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  _MathCanvas(
-                                    controller: _controller,
-                                    focusNode: _focusNode,
+                                    _MathCanvas(
+                                    controller: _mathController,
                                     hint: _inlineHint,
-                                    onTap: () => _focusNode.requestFocus(),
+                                    onTap: () {
+                                      setState(() => _isEditing = true);
+                                      _mathController.moveCursorToRootEnd();
+                                    },
+                                    onDoubleTap: () {
+                                      if (_canvasExpanded) {
+                                        setState(() => _canvasExpanded = false);
+                                      }
+                                      setState(() => _isEditing = true);
+                                      _mathController.moveCursorToRootEnd();
+                                    },
                                     onClear: _clear,
+                                    onCopyLatex: () {
+                                      final latex = latexFromRaw(_mathController.raw);
+                                      Clipboard.setData(ClipboardData(text: latex));
+                                    },
+                                    onToggleFullscreen: () {
+                                      setState(() => _canvasExpanded = !_canvasExpanded);
+                                    },
                                   ),
                                   const SizedBox(height: 12),
                                   BlocBuilder<SolverBloc, SolverState>(
@@ -150,9 +143,9 @@ class _SolverPageState extends State<SolverPage> {
                                         return const Center(child: CircularProgressIndicator());
                                       }
                                       if (state is SolverLoaded) {
-                                        final sameAsInput = _controller.text.isNotEmpty &&
-                                            latexFromRaw(_controller.text) == state.solution.problemLatex;
-                                        final hideProblem = _focusNode.hasFocus && sameAsInput;
+                                        final sameAsInput = _mathController.raw.isNotEmpty &&
+                                            latexFromRaw(_mathController.raw) == state.solution.problemLatex;
+                                        final hideProblem = _isEditing && sameAsInput;
                                         return _SolutionView(
                                           solution: state.solution,
                                           showProblem: !hideProblem,
@@ -181,19 +174,10 @@ class _SolverPageState extends State<SolverPage> {
                             left: 16,
                             right: 16,
                             bottom: 12,
-                            child: _SolvePill(
+                          child: _SolvePill(
                               onPressed: () {
-                                context.read<SolverBloc>().add(SolveRequested(_controller.text));
-                              },
-                            ),
-                          ),
-                          Positioned(
-                            right: 8,
-                            top: 8,
-                            child: IconButton(
-                              icon: Icon(_canvasExpanded ? Icons.fullscreen_exit : Icons.fullscreen),
-                              onPressed: () {
-                                setState(() => _canvasExpanded = !_canvasExpanded);
+                                setState(() => _isEditing = false);
+                                context.read<SolverBloc>().add(SolveRequested(_mathController.raw));
                               },
                             ),
                           ),
@@ -210,7 +194,8 @@ class _SolverPageState extends State<SolverPage> {
                           onCursorLeft: () => _moveCursor(-1),
                           onCursorRight: () => _moveCursor(1),
                           onSubmit: () {
-                            context.read<SolverBloc>().add(SolveRequested(_controller.text));
+                            setState(() => _isEditing = false);
+                            context.read<SolverBloc>().add(SolveRequested(_mathController.raw));
                           },
                         ),
                       ),
@@ -226,102 +211,77 @@ class _SolverPageState extends State<SolverPage> {
 }
 
 class _MathCanvas extends StatelessWidget {
-  final TextEditingController controller;
-  final FocusNode focusNode;
+  final MathEditorController controller;
   final String hint;
   final VoidCallback onTap;
+  final VoidCallback onDoubleTap;
   final VoidCallback onClear;
+  final VoidCallback onCopyLatex;
+  final VoidCallback onToggleFullscreen;
 
   const _MathCanvas({
     required this.controller,
-    required this.focusNode,
     required this.hint,
     required this.onTap,
+    required this.onDoubleTap,
     required this.onClear,
+    required this.onCopyLatex,
+    required this.onToggleFullscreen,
   });
 
   @override
   Widget build(BuildContext context) {
     const inputFontSize = 32.0;
     return GestureDetector(
-      onTap: onTap,
+      behavior: HitTestBehavior.translucent,
+      onDoubleTap: onDoubleTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                    child: IntrinsicWidth(
-                      child: Stack(
-                        alignment: Alignment.centerLeft,
-                        children: [
-                          SizedBox(
-                            width: constraints.maxWidth,
-                            child: TextField(
-                              controller: controller,
-                              focusNode: focusNode,
-                              readOnly: true,
-                              maxLines: 1,
-                              showCursor: true,
-                              enableInteractiveSelection: true,
-                              style: const TextStyle(
-                                color: AppColors.blackText,
-                                fontSize: inputFontSize,
-                                fontFamily: 'Times New Roman',
-                                fontWeight: FontWeight.w400,
-                              ),
-                              cursorHeight: inputFontSize,
-                              cursorWidth: 2.0,
-                              cursorColor: AppColors.tertiaryOrange,
-                            decoration: const InputDecoration(
-                              isDense: true,
-                              border: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              disabledBorder: InputBorder.none,
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                            ),
-                          ),
-                          if (controller.text.isNotEmpty)
-                            Positioned(
-                              right: 0,
-                              child: IconButton(
-                                visualDensity: VisualDensity.compact,
-                                icon: const Icon(Icons.clear, size: 18),
-                                onPressed: onClear,
-                              ),
-                            ),
-                        ],
-                      ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  icon: Icon(Icons.fullscreen, color: AppColors.blackText),
+                  onPressed: onToggleFullscreen,
+                ),
+                const SizedBox(width: 4),
+                PopupMenuButton<_CanvasAction>(
+                  icon: const Icon(Icons.more_vert, size: 18),
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: _CanvasAction.copyLatex,
+                      child: Text('Copier LaTeX'),
+                    ),
+                  ],
+                  onSelected: (action) {
+                    switch (action) {
+                      case _CanvasAction.copyLatex:
+                        onCopyLatex();
+                        break;
+                    }
+                  },
+                ),
+                if (!controller.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4),
+                    child: IconButton(
+                      visualDensity: VisualDensity.compact,
+                      icon: const Icon(Icons.clear, size: 18),
+                      onPressed: onClear,
                     ),
                   ),
-                );
-              },
+              ],
             ),
-            const SizedBox(height: 10),
-            AnimatedSize(
-              duration: const Duration(milliseconds: 180),
-              curve: Curves.easeOut,
-              child: ValueListenableBuilder<TextEditingValue>(
-                valueListenable: controller,
-                builder: (context, value, _) {
-                  if (value.text.isEmpty) {
-                    return const SizedBox.shrink();
-                  }
-                  return SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: LatexView(latex: latexFromRaw(value.text)),
-                  );
-                },
-              ),
+            MathEditor(
+              controller: controller,
+              fontSize: inputFontSize,
+              onTap: onTap,
             ),
-            if (controller.text.isEmpty && hint.isNotEmpty) ...[
+            if (controller.isEmpty && hint.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(hint, style: const TextStyle(color: AppColors.neutralGray)),
             ],
@@ -331,6 +291,8 @@ class _MathCanvas extends StatelessWidget {
     );
   }
 }
+
+enum _CanvasAction { copyLatex }
 
 class _SolutionView extends StatelessWidget {
   final MathSolution solution;
@@ -519,7 +481,6 @@ class _StepsToolbar extends StatelessWidget {
   }
 }
 
-
 class _StepEntry {
   final SolutionStep step;
   final double indent;
@@ -561,4 +522,3 @@ class _SolvePill extends StatelessWidget {
     );
   }
 }
-
