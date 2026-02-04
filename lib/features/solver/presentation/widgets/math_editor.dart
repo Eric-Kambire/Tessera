@@ -2,7 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-enum _ChildSlot { numerator, denominator, radicand, exponent, argument, integrand, base }
+enum _ChildSlot { numerator, denominator, radicand, exponent, argument, integrand, base, limitVar, limitTo, limitExpr }
 
 class _CursorStep {
   final int nodeIndex;
@@ -107,6 +107,15 @@ class MathEditorController extends ChangeNotifier {
     list.nodes.insert(_cursor.index, _IntegralNode());
     final steps = List<_CursorStep>.from(_cursor.steps)
       ..add(_CursorStep(_cursor.index, _ChildSlot.integrand));
+    _cursor = _CursorPath(steps: steps, index: 0);
+    notifyListeners();
+  }
+
+  void insertLimit({String side = ''}) {
+    final list = _activeList();
+    list.nodes.insert(_cursor.index, _LimitNode(side: side));
+    final steps = List<_CursorStep>.from(_cursor.steps)
+      ..add(_CursorStep(_cursor.index, _ChildSlot.limitVar));
     _cursor = _CursorPath(steps: steps, index: 0);
     notifyListeners();
   }
@@ -345,7 +354,7 @@ class _TextNode extends _MathNode {
     return GestureDetector(
       onTap: () => controller.setCursor(_CursorPath(steps: parentPath, index: index + 1)),
       child: Text(
-        text,
+        _displayText(text),
         style: TextStyle(
           fontSize: fontSize,
           fontFamily: 'Times New Roman',
@@ -357,6 +366,14 @@ class _TextNode extends _MathNode {
 
   @override
   String toRaw() => text;
+}
+
+String _displayText(String raw) {
+  return raw
+      .replaceAll('*', '×')
+      .replaceAll('/', '÷')
+      .replaceAll('-', '−')
+      .replaceAll('pi', 'π');
 }
 
 class _PlaceholderNode extends _MathNode {
@@ -616,6 +633,112 @@ class _FunctionNode extends _MathNode implements _HasChildren {
 
   @override
   _MathList childFor(_ChildSlot slot) => argument;
+}
+
+class _LimitNode extends _MathNode implements _HasChildren {
+  final String side; // '', '+', '-'
+  final _MathList variable = _MathList();
+  final _MathList approach = _MathList();
+  final _MathList expression = _MathList();
+
+  _LimitNode({required this.side});
+
+  @override
+  Widget build(
+    BuildContext context,
+    MathEditorController controller,
+    List<_CursorStep> parentPath,
+    int index,
+    double fontSize,
+  ) {
+    final varPath = List<_CursorStep>.from(parentPath)..add(_CursorStep(index, _ChildSlot.limitVar));
+    final toPath = List<_CursorStep>.from(parentPath)..add(_CursorStep(index, _ChildSlot.limitTo));
+    final exprPath = List<_CursorStep>.from(parentPath)..add(_CursorStep(index, _ChildSlot.limitExpr));
+
+    final subSize = fontSize * 0.65;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('lim', style: TextStyle(fontSize: fontSize, fontFamily: 'Times New Roman')),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _tapTarget(
+                  onTap: () => controller.setCursor(_CursorPath(steps: varPath, index: variable.nodes.length)),
+                  child: _buildList(context, controller, variable, varPath, subSize),
+                  minWidth: 16,
+                  minHeight: 16,
+                ),
+                Text('→', style: TextStyle(fontSize: subSize, fontFamily: 'Times New Roman')),
+                _tapTarget(
+                  onTap: () => controller.setCursor(_CursorPath(steps: toPath, index: approach.nodes.length)),
+                  child: _buildList(context, controller, approach, toPath, subSize),
+                  minWidth: 16,
+                  minHeight: 16,
+                ),
+                if (side.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 1),
+                    child: Text(side, style: TextStyle(fontSize: subSize * 0.9)),
+                  ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(width: 4),
+        _tapTarget(
+          onTap: () => controller.setCursor(_CursorPath(steps: exprPath, index: expression.nodes.length)),
+          child: _buildList(context, controller, expression, exprPath, fontSize),
+          minWidth: 24,
+          minHeight: 22,
+        ),
+      ],
+    );
+  }
+
+  @override
+  String toRaw() {
+    final sideTag = side.isEmpty ? '' : '^$side';
+    return 'lim(${variable.toRaw()}->${approach.toRaw()}$sideTag,${expression.toRaw()})';
+  }
+
+  @override
+  _MathList childFor(_ChildSlot slot) {
+    switch (slot) {
+      case _ChildSlot.limitVar:
+        return variable;
+      case _ChildSlot.limitTo:
+        return approach;
+      case _ChildSlot.limitExpr:
+        return expression;
+      default:
+        return variable;
+    }
+  }
+}
+
+Widget _tapTarget({
+  required VoidCallback onTap,
+  required Widget child,
+  double minWidth = 18,
+  double minHeight = 18,
+}) {
+  return GestureDetector(
+    behavior: HitTestBehavior.translucent,
+    onTap: onTap,
+    child: ConstrainedBox(
+      constraints: BoxConstraints(minWidth: minWidth, minHeight: minHeight),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
+        child: child,
+      ),
+    ),
+  );
 }
 
 class _GroupNode extends _MathNode implements _HasChildren {

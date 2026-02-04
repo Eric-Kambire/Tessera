@@ -44,6 +44,9 @@ class _SolverPageState extends State<SolverPage> {
       _mathController.insertSqrt();
     } else if (text.startsWith('int')) {
       _mathController.insertIntegral();
+    } else if (text.startsWith('lim')) {
+      final side = text.contains('lim+') ? '+' : text.contains('lim-') ? '-' : '';
+      _mathController.insertLimit(side: side);
     } else if (text.startsWith('sin')) {
       _mathController.insertFunction('sin');
     } else if (text.startsWith('cos')) {
