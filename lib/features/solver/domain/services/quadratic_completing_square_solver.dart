@@ -1,4 +1,5 @@
 import '../../../../core/utils/latex_input_formatter.dart';
+import '../../../../core/utils/rational_formatter.dart';
 import '../entities/math_solution.dart';
 import '../entities/solution_step.dart';
 
@@ -81,7 +82,7 @@ class QuadraticCompletingSquareSolver {
 
     final x1 = -h - _sqrt(rightValue);
     final x2 = -h + _sqrt(rightValue);
-    final finalAnswer = (x1 - x2).abs() < 1e-9
+    final finalAnswerStep = (x1 - x2).abs() < 1e-9
         ? r'x = ' + _fmt(x1)
         : r'x_1 = ' + _fmt(x1) + r',\; x_2 = ' + _fmt(x2);
 
@@ -89,9 +90,13 @@ class QuadraticCompletingSquareSolver {
       SolutionStep(
         inputLatex: r'x ' + _signLatex(h, negativeSymbol: '-') + ' ' + _fmt(h.abs()) + r' = \pm\sqrt{' + _fmt(rightValue) + r'}',
         description: 'Isoler x.',
-        outputLatex: finalAnswer,
+        outputLatex: finalAnswerStep,
       ),
     );
+
+    final finalAnswer = (x1 - x2).abs() < 1e-9
+        ? r'x = ' + formatValueFractionFirst(x1)
+        : formatSolutionsFractionFirst([x1, x2]);
 
     return MathSolution(
       problemLatex: inputLatex,

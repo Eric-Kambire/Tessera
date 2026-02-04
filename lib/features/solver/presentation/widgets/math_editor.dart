@@ -1,4 +1,6 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 enum _ChildSlot { numerator, denominator, radicand, exponent, argument, integrand, base }
 
@@ -392,19 +394,11 @@ class _FractionNode extends _MathNode implements _HasChildren {
     final innerSize = fontSize * 0.8;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          GestureDetector(
-            onTap: () => controller.setCursor(_CursorPath(steps: numPath, index: numerator.nodes.length)),
-            child: _buildList(context, controller, numerator, numPath, innerSize),
-          ),
-          Container(width: 26, height: 1.5, color: Colors.black),
-          GestureDetector(
-            onTap: () => controller.setCursor(_CursorPath(steps: denPath, index: denominator.nodes.length)),
-            child: _buildList(context, controller, denominator, denPath, innerSize),
-          ),
-        ],
+      child: _FractionBox(
+        numerator: _buildList(context, controller, numerator, numPath, innerSize),
+        denominator: _buildList(context, controller, denominator, denPath, innerSize),
+        onTapNumerator: () => controller.setCursor(_CursorPath(steps: numPath, index: numerator.nodes.length)),
+        onTapDenominator: () => controller.setCursor(_CursorPath(steps: denPath, index: denominator.nodes.length)),
       ),
     );
   }
@@ -424,6 +418,95 @@ class _FractionNode extends _MathNode implements _HasChildren {
     }
   }
 }
+
+class _FractionBox extends StatefulWidget {
+  final Widget numerator;
+  final Widget denominator;
+  final VoidCallback onTapNumerator;
+  final VoidCallback onTapDenominator;
+
+  const _FractionBox({
+    required this.numerator,
+    required this.denominator,
+    required this.onTapNumerator,
+    required this.onTapDenominator,
+  });
+
+  @override
+  State<_FractionBox> createState() => _FractionBoxState();
+}
+
+class _FractionBoxState extends State<_FractionBox> {
+  double _barWidth = 18;
+  double _numWidth = 0;
+  double _denWidth = 0;
+
+  void _updateWidth({double? num, double? den}) {
+    if (num != null) _numWidth = num;
+    if (den != null) _denWidth = den;
+    final next = math.max(18, math.max(_numWidth, _denWidth)).toDouble();
+    if ((next - _barWidth).abs() < 0.5) return;
+    setState(() => _barWidth = next);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        MeasureSize(
+          onChange: (size) => _updateWidth(num: size.width),
+          child: GestureDetector(onTap: widget.onTapNumerator, child: widget.numerator),
+        ),
+        Container(
+          margin: const EdgeInsets.symmetric(vertical: 2),
+          height: 1.5,
+          width: _barWidth,
+          color: Colors.black,
+        ),
+        MeasureSize(
+          onChange: (size) => _updateWidth(den: size.width),
+          child: GestureDetector(onTap: widget.onTapDenominator, child: widget.denominator),
+        ),
+      ],
+    );
+  }
+}
+
+typedef OnWidgetSizeChange = void Function(Size size);
+
+class MeasureSize extends SingleChildRenderObjectWidget {
+  final OnWidgetSizeChange onChange;
+
+  const MeasureSize({super.key, required this.onChange, required Widget child}) : super(child: child);
+
+  @override
+  RenderObject createRenderObject(BuildContext context) => _RenderMeasureSize(onChange);
+
+  @override
+  void updateRenderObject(BuildContext context, covariant _RenderMeasureSize renderObject) {
+    renderObject.onChange = onChange;
+  }
+}
+
+class _RenderMeasureSize extends RenderProxyBox {
+  OnWidgetSizeChange onChange;
+  Size? _oldSize;
+
+  _RenderMeasureSize(this.onChange);
+
+  @override
+  void performLayout() {
+    super.performLayout();
+    final newSize = child?.size ?? Size.zero;
+    if (_oldSize == newSize) return;
+    _oldSize = newSize;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      onChange(newSize);
+    });
+  }
+}
+
 
 class _SqrtNode extends _MathNode implements _HasChildren {
   final _MathList radicand = _MathList();

@@ -1,4 +1,5 @@
 import '../../../../core/utils/latex_input_formatter.dart';
+import '../../../../core/utils/rational_formatter.dart';
 import '../../../../core/utils/math_input_normalizer.dart';
 import '../entities/math_solution.dart';
 import '../entities/solution_step.dart';
@@ -55,8 +56,8 @@ class PolynomialEquationSolver {
     ];
 
     final finalAnswer = x1 == x2
-        ? r'x = ' + _fmt(x1)
-        : r'x_1 = ' + _fmt(x1) + r',\; x_2 = ' + _fmt(x2);
+        ? r'x = ' + formatValueFractionFirst(x1)
+        : formatSolutionsFractionFirst([x1, x2]);
 
     return MathSolution(
       problemLatex: inputLatex,

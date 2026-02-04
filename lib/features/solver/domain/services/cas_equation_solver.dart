@@ -7,6 +7,7 @@ import '../../../../core/cas/simplifier.dart';
 import '../../../../core/cas/statement.dart';
 import '../../../../core/utils/latex_input_formatter.dart';
 import '../../../../core/utils/math_input_normalizer.dart';
+import '../../../../core/utils/rational_formatter.dart';
 import '../entities/math_solution.dart';
 import '../entities/solution_step.dart';
 
@@ -89,7 +90,7 @@ class CasEquationSolver {
     return MathSolution(
       problemLatex: inputLatex,
       steps: steps,
-      finalAnswerLatex: _solutionLatex(result.validSolutions),
+      finalAnswerLatex: formatSolutionsFractionFirst(result.validSolutions),
     );
   }
 
@@ -171,7 +172,7 @@ class CasEquationSolver {
       return MathSolution(
         problemLatex: inputLatex,
         steps: steps,
-        finalAnswerLatex: _solutionLatex(higher.validSolutions),
+        finalAnswerLatex: formatSolutionsFractionFirst(higher.validSolutions),
       );
     }
 
@@ -205,7 +206,7 @@ class CasEquationSolver {
     return MathSolution(
       problemLatex: inputLatex,
       steps: steps,
-      finalAnswerLatex: _solutionLatex(result.validSolutions),
+      finalAnswerLatex: formatSolutionsFractionFirst(result.validSolutions),
     );
   }
 
@@ -303,7 +304,7 @@ class CasEquationSolver {
       return MathSolution(
         problemLatex: inputLatex,
         steps: steps,
-        finalAnswerLatex: _solutionLatex(higher.validSolutions),
+        finalAnswerLatex: formatSolutionsFractionFirst(higher.validSolutions),
       );
     }
 
@@ -339,7 +340,7 @@ class CasEquationSolver {
     return MathSolution(
       problemLatex: inputLatex,
       steps: steps,
-      finalAnswerLatex: _solutionLatex(result.validSolutions),
+      finalAnswerLatex: formatSolutionsFractionFirst(result.validSolutions),
     );
   }
 }
@@ -652,12 +653,12 @@ MathSolution? _solveRadicalProductLinear(Expr left, Expr right, String inputLate
     ),
   ];
 
-  return MathSolution(
-    problemLatex: inputLatex,
-    steps: steps,
-    finalAnswerLatex: match.finalLatex,
-  );
-}
+    return MathSolution(
+      problemLatex: inputLatex,
+      steps: steps,
+      finalAnswerLatex: match.finalLatex,
+    );
+  }
 
 class _RadicalProductMatch {
   final String rewrittenLatex;
@@ -895,12 +896,12 @@ MathSolution? _solveLinearSymbolic(Expr left, Expr right, String inputLatex) {
               rationalization.rawLatex)
       : r'x = \frac{' + _negExpr(constant).toLatex() + '}{' + coeff.toLatex() + '}';
 
-  return MathSolution(
-    problemLatex: inputLatex,
-    steps: steps,
-    finalAnswerLatex: finalLatex,
-  );
-}
+    return MathSolution(
+      problemLatex: inputLatex,
+      steps: steps,
+      finalAnswerLatex: finalLatex,
+    );
+  }
 
 class _LinearDecomposition {
   final Expr coeff;
@@ -1247,7 +1248,7 @@ MathSolution? _solveLogValue(_LogCall logCall, Expr valueExpr, String inputLatex
   return MathSolution(
     problemLatex: inputLatex,
     steps: steps,
-    finalAnswerLatex: _solutionLatex(result.validSolutions),
+    finalAnswerLatex: formatSolutionsFractionFirst(result.validSolutions),
   );
 }
 

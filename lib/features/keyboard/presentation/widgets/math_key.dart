@@ -82,6 +82,12 @@ class _LabelText extends StatelessWidget {
   Widget build(BuildContext context) {
     final parts = label.split('');
     final hasPlaceholder = parts.contains('□');
+    if (label == '□/□') {
+      return FittedBox(
+        fit: BoxFit.scaleDown,
+        child: _FractionKeyLabel(color: color, scale: scale),
+      );
+    }
 
     final baseStyle = TextStyle(
       fontSize: (_isNumeric(label) ? 16 : 14) * scale,
@@ -139,6 +145,31 @@ class _PlaceholderBox extends StatelessWidget {
     return CustomPaint(
       size: Size(11 * scale, 11 * scale),
       painter: _DashedBoxPainter(color: const Color(0xFF999999)),
+    );
+  }
+}
+
+class _FractionKeyLabel extends StatelessWidget {
+  final Color color;
+  final double scale;
+
+  const _FractionKeyLabel({required this.color, required this.scale});
+
+  @override
+  Widget build(BuildContext context) {
+    final lineColor = color.withOpacity(0.9);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _PlaceholderBox(scale: scale),
+        Container(
+          margin: EdgeInsets.symmetric(vertical: 2 * scale),
+          width: 16 * scale,
+          height: 1.2 * scale,
+          color: lineColor,
+        ),
+        _PlaceholderBox(scale: scale),
+      ],
     );
   }
 }

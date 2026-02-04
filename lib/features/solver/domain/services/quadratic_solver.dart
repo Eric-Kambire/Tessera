@@ -1,5 +1,6 @@
 ﻿import 'dart:math' as math;
 import '../../../../core/utils/latex_input_formatter.dart';
+import '../../../../core/utils/rational_formatter.dart';
 import '../entities/math_solution.dart';
 import '../entities/solution_step.dart';
 
@@ -72,8 +73,8 @@ class QuadraticSolver {
     );
 
     final finalAnswer = delta == 0
-        ? r'x = ' + _fmt(x1)
-        : r'x_1 = ' + _fmt(x1) + r',\; x_2 = ' + _fmt(x2);
+        ? r'x = ' + formatValueFractionFirst(x1)
+        : formatSolutionsFractionFirst([x1, x2]);
 
     return MathSolution(
       problemLatex: problemLatex,

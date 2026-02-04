@@ -1,4 +1,5 @@
 import '../../../../core/utils/latex_input_formatter.dart';
+import '../../../../core/utils/rational_formatter.dart';
 import '../../../../core/utils/math_input_normalizer.dart';
 import '../entities/math_solution.dart';
 import '../entities/solution_step.dart';
@@ -63,8 +64,8 @@ class QuadraticFactoringSolver {
     ];
 
     final finalAnswer = r1 == r2
-        ? r'x = ' + _fmt(r1.toDouble())
-        : r'x_1 = ' + _fmt(r1.toDouble()) + r',\; x_2 = ' + _fmt(r2.toDouble());
+        ? r'x = ' + formatValueFractionFirst(r1.toDouble())
+        : formatSolutionsFractionFirst([r1.toDouble(), r2.toDouble()]);
 
     return MathSolution(
       problemLatex: inputLatex,

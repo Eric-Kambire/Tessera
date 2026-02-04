@@ -8,6 +8,7 @@ import '../../domain/services/latex_change_highlighter.dart';
 import '../../domain/services/step_description_mapper.dart';
 import '../../domain/services/remarkable_identity_solver.dart';
 import '../../domain/services/fraction_solver.dart';
+import '../../domain/services/calculator_solver.dart';
 import '../../domain/services/cas_equation_solver.dart';
 import '../../domain/services/polynomial_equation_solver.dart';
 import '../../domain/services/quadratic_factoring_solver.dart';
@@ -52,6 +53,10 @@ class SolverRepositoryImpl implements SolverRepository {
     final fraction = FractionSolver.trySolve(latex);
     if (fraction != null) {
       return fraction;
+    }
+    final calculator = CalculatorSolver().trySolve(latex);
+    if (calculator != null) {
+      return calculator;
     }
     if (method == SolveMethod.completingSquare && _looksQuadratic(normalized)) {
       final square = QuadraticCompletingSquareSolver.trySolve(latex, normalized);
