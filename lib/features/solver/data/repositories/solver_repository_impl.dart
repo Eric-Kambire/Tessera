@@ -8,10 +8,17 @@ import '../../domain/services/latex_change_highlighter.dart';
 import '../../domain/services/step_description_mapper.dart';
 import '../../domain/services/remarkable_identity_solver.dart';
 import '../../domain/services/fraction_solver.dart';
+import '../../domain/services/cas_equation_solver.dart';
+import '../../domain/services/polynomial_equation_solver.dart';
+import '../../domain/services/quadratic_factoring_solver.dart';
+import '../../domain/services/quadratic_completing_square_solver.dart';
+import '../../domain/services/rational_equation_solver.dart';
+import '../../domain/services/trig_equation_solver.dart';
 import '../../../../core/errors/failures.dart';
 import '../datasources/math_engine_service.dart';
 import '../../../../core/utils/math_input_normalizer.dart';
 import '../../domain/services/quadratic_solver.dart';
+import '../../domain/entities/solve_method.dart';
 import '../models/engine_solution_model.dart';
 import '../models/engine_step_model.dart';
 
@@ -30,8 +37,14 @@ class SolverRepositoryImpl implements SolverRepository {
   );
 
   @override
-  Future<MathSolution> solveLatex(String latex) async {
+  Future<MathSolution> solveLatex(String latex, {SolveMethod? method}) async {
     final normalized = normalizeForEngine(latex);
+    if (method != null && _looksQuadratic(normalized)) {
+      final viaMethod = _solveQuadraticWithMethod(latex, normalized, method);
+      if (viaMethod != null) {
+        return viaMethod;
+      }
+    }
     final identity = RemarkableIdentitySolver.trySolve(latex);
     if (identity != null) {
       return identity;
@@ -39,6 +52,32 @@ class SolverRepositoryImpl implements SolverRepository {
     final fraction = FractionSolver.trySolve(latex);
     if (fraction != null) {
       return fraction;
+    }
+    if (method == SolveMethod.completingSquare && _looksQuadratic(normalized)) {
+      final square = QuadraticCompletingSquareSolver.trySolve(latex, normalized);
+      if (square != null) {
+        return square;
+      }
+    }
+    final cas = CasEquationSolver().trySolve(latex);
+    if (cas != null) {
+      return cas;
+    }
+    final trig = TrigEquationSolver.trySolve(latex);
+    if (trig != null) {
+      return trig;
+    }
+    final rational = RationalEquationSolver.trySolve(latex);
+    if (rational != null) {
+      return rational;
+    }
+    final polynomial = PolynomialEquationSolver.trySolve(latex);
+    if (polynomial != null) {
+      return polynomial;
+    }
+    final factoredQuadratic = QuadraticFactoringSolver.trySolve(latex);
+    if (factoredQuadratic != null) {
+      return factoredQuadratic;
     }
     final quadratic = QuadraticSolver.trySolve(latex, normalized);
     if (quadratic != null) {
@@ -82,5 +121,22 @@ class SolverRepositoryImpl implements SolverRepository {
         subSteps: subSteps,
       );
     }).toList();
+  }
+
+  bool _looksQuadratic(String normalized) {
+    return normalized.contains('x^2') && normalized.contains('=');
+  }
+
+  MathSolution? _solveQuadraticWithMethod(String raw, String normalized, SolveMethod method) {
+    switch (method) {
+      case SolveMethod.factoring:
+        return QuadraticFactoringSolver.trySolve(raw);
+      case SolveMethod.completingSquare:
+        return QuadraticCompletingSquareSolver.trySolve(raw, normalized);
+      case SolveMethod.quadraticFormula:
+        return QuadraticSolver.trySolve(raw, normalized);
+      case SolveMethod.auto:
+        return null;
+    }
   }
 }

@@ -9,6 +9,7 @@ import '../../../../injector.dart';
 import '../../../keyboard/presentation/widgets/math_keyboard_panel.dart';
 import '../../domain/entities/math_solution.dart';
 import '../../domain/entities/solution_step.dart';
+import '../../domain/entities/solve_method.dart';
 import '../bloc/solver_bloc.dart';
 import '../widgets/step_card.dart';
 import '../widgets/result_card.dart';
@@ -25,6 +26,7 @@ class _SolverPageState extends State<SolverPage> {
   String _inlineHint = 'Ex: 2x + 4 = 10';
   bool _canvasExpanded = false;
   bool _isEditing = false;
+  SolveMethod _selectedMethod = SolveMethod.auto;
 
   @override
   void dispose() {
@@ -79,6 +81,16 @@ class _SolverPageState extends State<SolverPage> {
 
   void _moveCursor(int delta) {
     _mathController.moveCursor(delta);
+  }
+
+  void _solve(BuildContext context) {
+    setState(() => _isEditing = false);
+    context.read<SolverBloc>().add(
+          SolveRequested(
+            _mathController.raw,
+            method: _selectedMethod,
+          ),
+        );
   }
 
   @override
@@ -149,6 +161,11 @@ class _SolverPageState extends State<SolverPage> {
                                         return _SolutionView(
                                           solution: state.solution,
                                           showProblem: !hideProblem,
+                                          method: _selectedMethod,
+                                          onMethodChanged: (method) {
+                                            setState(() => _selectedMethod = method);
+                                            _solve(context);
+                                          },
                                         );
                                       }
                                       if (state is SolverError) {
@@ -176,8 +193,7 @@ class _SolverPageState extends State<SolverPage> {
                             bottom: 12,
                           child: _SolvePill(
                               onPressed: () {
-                                setState(() => _isEditing = false);
-                                context.read<SolverBloc>().add(SolveRequested(_mathController.raw));
+                                _solve(context);
                               },
                             ),
                           ),
@@ -194,8 +210,7 @@ class _SolverPageState extends State<SolverPage> {
                           onCursorLeft: () => _moveCursor(-1),
                           onCursorRight: () => _moveCursor(1),
                           onSubmit: () {
-                            setState(() => _isEditing = false);
-                            context.read<SolverBloc>().add(SolveRequested(_mathController.raw));
+                            _solve(context);
                           },
                         ),
                       ),
@@ -297,10 +312,14 @@ enum _CanvasAction { copyLatex }
 class _SolutionView extends StatelessWidget {
   final MathSolution solution;
   final bool showProblem;
+  final SolveMethod method;
+  final ValueChanged<SolveMethod> onMethodChanged;
 
   const _SolutionView({
     required this.solution,
     required this.showProblem,
+    required this.method,
+    required this.onMethodChanged,
   });
 
   @override
@@ -314,7 +333,11 @@ class _SolutionView extends StatelessWidget {
           LatexView(latex: solution.problemLatex),
           const SizedBox(height: 16),
         ],
-        _StepsNavigator(steps: solution.steps),
+        _StepsNavigator(
+          steps: solution.steps,
+          method: method,
+          onMethodChanged: onMethodChanged,
+        ),
         ResultCard(solution: solution),
       ],
     );
@@ -323,8 +346,14 @@ class _SolutionView extends StatelessWidget {
 
 class _StepsNavigator extends StatefulWidget {
   final List<SolutionStep> steps;
+  final SolveMethod method;
+  final ValueChanged<SolveMethod> onMethodChanged;
 
-  const _StepsNavigator({required this.steps});
+  const _StepsNavigator({
+    required this.steps,
+    required this.method,
+    required this.onMethodChanged,
+  });
 
   @override
   State<_StepsNavigator> createState() => _StepsNavigatorState();
@@ -400,6 +429,8 @@ class _StepsNavigatorState extends State<_StepsNavigator> {
           onToggleExpand: () => setState(() => _expandAll = !_expandAll),
           onPrev: _current > 0 ? () => _setCurrent(_current - 1) : null,
           onNext: _current < _entries.length - 1 ? () => _setCurrent(_current + 1) : null,
+          method: widget.method,
+          onMethodChanged: widget.onMethodChanged,
         ),
         const SizedBox(height: 8),
         ListView.builder(
@@ -445,38 +476,121 @@ class _StepsToolbar extends StatelessWidget {
   final VoidCallback onToggleExpand;
   final VoidCallback? onPrev;
   final VoidCallback? onNext;
+  final SolveMethod method;
+  final ValueChanged<SolveMethod> onMethodChanged;
 
   const _StepsToolbar({
     required this.current,
     required this.total,
     required this.expanded,
     required this.onToggleExpand,
+    required this.method,
+    required this.onMethodChanged,
     this.onPrev,
     this.onNext,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Text('Étapes', style: Theme.of(context).textTheme.titleMedium),
-        const Spacer(),
-        TextButton(
-          onPressed: onToggleExpand,
-          child: Text(expanded ? 'Tout replier' : 'Tout déplier'),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 420;
+        final left = Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Étapes', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(width: 12),
+            _MethodSelector(
+              method: method,
+              onChanged: onMethodChanged,
+            ),
+          ],
+        );
+        final right = Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextButton(
+              onPressed: onToggleExpand,
+              child: Text(expanded ? 'Tout replier' : 'Tout déplier'),
+            ),
+            IconButton(
+              icon: const Icon(Icons.arrow_upward, size: 18),
+              onPressed: onPrev,
+              visualDensity: VisualDensity.compact,
+            ),
+            Text('$current / $total', style: const TextStyle(color: AppColors.neutralGray)),
+            IconButton(
+              icon: const Icon(Icons.arrow_downward, size: 18),
+              onPressed: onNext,
+              visualDensity: VisualDensity.compact,
+            ),
+          ],
+        );
+
+        if (isNarrow) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              left,
+              const SizedBox(height: 4),
+              right,
+            ],
+          );
+        }
+
+        return Row(
+          children: [
+            left,
+            const Spacer(),
+            right,
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _MethodSelector extends StatelessWidget {
+  final SolveMethod method;
+  final ValueChanged<SolveMethod> onChanged;
+
+  const _MethodSelector({
+    required this.method,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<SolveMethod>(
+      tooltip: 'Changer de méthode',
+      onSelected: onChanged,
+      itemBuilder: (context) => SolveMethod.values
+          .map(
+            (m) => PopupMenuItem(
+              value: m,
+              child: Text(solveMethodLabel(m)),
+            ),
+          )
+          .toList(),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: AppColors.primaryBlue.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.primaryBlue.withOpacity(0.2)),
         ),
-        IconButton(
-          icon: const Icon(Icons.arrow_upward, size: 18),
-          onPressed: onPrev,
-          visualDensity: VisualDensity.compact,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Méthode: ${solveMethodLabel(method)}',
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(width: 6),
+            const Icon(Icons.expand_more, size: 16),
+          ],
         ),
-        Text('$current / $total', style: const TextStyle(color: AppColors.neutralGray)),
-        IconButton(
-          icon: const Icon(Icons.arrow_downward, size: 18),
-          onPressed: onNext,
-          visualDensity: VisualDensity.compact,
-        ),
-      ],
+      ),
     );
   }
 }

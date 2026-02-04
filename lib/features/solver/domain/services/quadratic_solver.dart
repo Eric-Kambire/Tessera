@@ -30,17 +30,17 @@ class QuadraticSolver {
     final steps = <SolutionStep>[
       SolutionStep(
         inputLatex: problemLatex,
-        description: 'Mettre sous la forme ax^2 + bx + c = 0',
+        description: 'Ramener l’équation à la forme ax^2 + bx + c = 0.',
         outputLatex: standardForm + r' = 0',
       ),
       SolutionStep(
         inputLatex: standardForm + r' = 0',
-        description: 'Mettre sous forme canonique',
+        description: 'Mettre le trinôme sous forme canonique.',
         outputLatex: canonicalForm + r' = 0',
       ),
       SolutionStep(
         inputLatex: standardForm + r' = 0',
-        description: 'Calculer le discriminant',
+        description: 'Calculer le discriminant.',
         outputLatex: r'\Delta = ' + _fmt(b) + r'^2 - 4\times' + _fmt(a) + r'\times' + _fmt(c) + r' = ' + _fmt(delta),
       ),
     ];
@@ -66,7 +66,7 @@ class QuadraticSolver {
     steps.add(
       SolutionStep(
         inputLatex: r'\Delta = ' + _fmt(delta),
-        description: 'Appliquer la formule quadratique',
+        description: 'Appliquer la formule quadratique.',
         outputLatex: formula + r'\;\Rightarrow\;' + valueLine,
       ),
     );

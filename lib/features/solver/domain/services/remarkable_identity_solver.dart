@@ -16,7 +16,7 @@ class RemarkableIdentitySolver {
     final steps = <SolutionStep>[
       SolutionStep(
         inputLatex: problemLatex,
-        description: 'Reconnaître une identité remarquable',
+        description: 'Reconnaître une identité remarquable.',
         outputLatex: expandedLatex,
       ),
     ];

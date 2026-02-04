@@ -149,7 +149,7 @@ MathSolution _simplifyFraction(String rawInput, _Frac frac) {
     steps: [
       SolutionStep(
         inputLatex: inputLatex,
-        description: changed ? 'Réduire la fraction' : 'Fraction déjà simplifiée',
+        description: changed ? 'Réduire la fraction à sa forme irréductible.' : 'La fraction est déjà irréductible.',
         outputLatex: outputLatex,
       ),
     ],
@@ -174,12 +174,12 @@ MathSolution _addSub(String rawInput, _Frac left, _Frac right, bool isSub) {
     steps: [
       SolutionStep(
         inputLatex: inputLatex,
-        description: 'Mettre au même dénominateur',
+        description: 'Mettre les fractions au même dénominateur.',
         outputLatex: stepLatex,
         subSteps: [
           SolutionStep(
             inputLatex: inputLatex,
-            description: 'Multiplier chaque fraction par le dénominateur manquant',
+            description: 'Multiplier chaque fraction par le dénominateur manquant.',
             outputLatex: stepLatex,
             isSubstep: true,
           ),
@@ -188,7 +188,7 @@ MathSolution _addSub(String rawInput, _Frac left, _Frac right, bool isSub) {
       if (stepLatex != reducedLatex)
         SolutionStep(
           inputLatex: stepLatex,
-          description: 'Réduire la fraction',
+          description: 'Réduire la fraction à sa forme irréductible.',
           outputLatex: reducedLatex,
         ),
     ],
@@ -211,12 +211,12 @@ MathSolution _mul(String rawInput, _Frac left, _Frac right) {
     steps: [
       SolutionStep(
         inputLatex: inputLatex,
-        description: 'Multiplier les fractions',
+        description: 'Multiplier les fractions.',
         outputLatex: stepLatex,
         subSteps: [
           SolutionStep(
             inputLatex: inputLatex,
-            description: 'Multiplier les numérateurs et les dénominateurs',
+            description: 'Multiplier les numérateurs et les dénominateurs.',
             outputLatex: stepLatex,
             isSubstep: true,
           ),
@@ -225,7 +225,7 @@ MathSolution _mul(String rawInput, _Frac left, _Frac right) {
       if (stepLatex != reducedLatex)
         SolutionStep(
           inputLatex: stepLatex,
-          description: 'Réduire la fraction',
+          description: 'Réduire la fraction à sa forme irréductible.',
           outputLatex: reducedLatex,
         ),
     ],
@@ -250,12 +250,12 @@ MathSolution _div(String rawInput, _Frac left, _Frac right) {
     steps: [
       SolutionStep(
         inputLatex: inputLatex,
-        description: 'Diviser les fractions',
+        description: 'Diviser les fractions.',
         outputLatex: stepLatex,
         subSteps: [
           SolutionStep(
             inputLatex: inputLatex,
-            description: 'Multiplier par l’inverse de la deuxième fraction',
+            description: 'Multiplier par l’inverse de la deuxième fraction.',
             outputLatex: stepLatex,
             isSubstep: true,
           ),
@@ -264,7 +264,7 @@ MathSolution _div(String rawInput, _Frac left, _Frac right) {
       if (stepLatex != reducedLatex)
         SolutionStep(
           inputLatex: stepLatex,
-          description: 'Réduire la fraction',
+          description: 'Réduire la fraction à sa forme irréductible.',
           outputLatex: reducedLatex,
         ),
     ],
@@ -279,7 +279,7 @@ MathSolution _fallback(String rawInput) {
     steps: [
       SolutionStep(
         inputLatex: latex,
-        description: 'Simplification non supportée pour cette forme',
+        description: 'Simplification non supportée pour cette forme.',
         outputLatex: latex,
       ),
     ],

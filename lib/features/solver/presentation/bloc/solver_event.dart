@@ -9,9 +9,10 @@ abstract class SolverEvent extends Equatable {
 
 class SolveRequested extends SolverEvent {
   final String latexInput;
+  final SolveMethod? method;
 
-  const SolveRequested(this.latexInput);
+  const SolveRequested(this.latexInput, {this.method});
 
   @override
-  List<Object?> get props => [latexInput];
+  List<Object?> get props => [latexInput, method];
 }

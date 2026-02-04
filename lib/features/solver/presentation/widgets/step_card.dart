@@ -25,6 +25,11 @@ class StepCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final titleText = indexLabel == null || indexLabel!.isEmpty ? 'Étape' : 'Étape $indexLabel';
+    final borderColor = isActive ? AppColors.primaryBlue : AppColors.primaryBlue.withOpacity(0.08);
+    final shadowColor = isActive ? AppColors.primaryBlue.withOpacity(0.18) : Colors.black.withOpacity(0.04);
+    final outputBackground = AppColors.tertiaryOrange.withOpacity(isActive ? 0.08 : 0.05);
+
     final card = Padding(
       padding: EdgeInsets.only(left: indent),
       child: AnimatedContainer(
@@ -34,8 +39,8 @@ class StepCard extends StatelessWidget {
           color: isActive ? const Color(0xFFF4F8FF) : Colors.white,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isActive ? AppColors.primaryBlue : AppColors.primaryBlue.withOpacity(0.08),
-            width: isActive ? 1.2 : 1,
+            color: borderColor,
+            width: isActive ? 1.3 : 1,
           ),
           boxShadow: [
             if (isActive)
@@ -45,7 +50,7 @@ class StepCard extends StatelessWidget {
                 spreadRadius: 1,
               ),
             BoxShadow(
-              color: Colors.black.withOpacity(isActive ? 0.08 : 0.04),
+              color: shadowColor,
               blurRadius: isActive ? 10 : 6,
               offset: const Offset(0, 4),
             ),
@@ -57,18 +62,15 @@ class StepCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    width: 28,
-                    height: 28,
-                    alignment: Alignment.center,
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
                       color: isActive ? AppColors.primaryBlue : AppColors.neutralGray.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
-                      indexLabel ?? '',
+                      titleText,
                       style: TextStyle(
                         color: isActive ? Colors.white : AppColors.blackText,
                         fontWeight: FontWeight.w700,
@@ -76,13 +78,7 @@ class StepCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: LatexView(
-                      latex: step.outputLatex,
-                      textStyle: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ),
+                  const Spacer(),
                   if (isActive)
                     Row(
                       children: [
@@ -100,10 +96,38 @@ class StepCard extends StatelessWidget {
                     ),
                 ],
               ),
-              const SizedBox(height: 8),
-              Text(
-                step.description,
-                style: const TextStyle(color: AppColors.neutralGray),
+              const SizedBox(height: 12),
+              _StepSection(
+                label: 'Entrée',
+                child: LatexView(
+                  latex: step.inputLatex,
+                  textStyle: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              const SizedBox(height: 10),
+              _StepSection(
+                label: 'Justification',
+                child: Text(
+                  step.description,
+                  style: const TextStyle(color: AppColors.neutralGray),
+                ),
+              ),
+              const SizedBox(height: 10),
+              _StepSection(
+                label: 'Sortie',
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: outputBackground,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.tertiaryOrange.withOpacity(0.18)),
+                  ),
+                  child: LatexView(
+                    latex: step.outputLatex,
+                    textStyle: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
               ),
             ],
           ),
@@ -125,13 +149,16 @@ class StepCard extends StatelessWidget {
       initiallyExpanded: forceExpanded,
       tilePadding: EdgeInsets.only(left: indent),
       title: Text(
-        step.description,
+        titleText,
         style: TextStyle(
           color: AppColors.blackText,
-          fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+          fontWeight: isActive ? FontWeight.w700 : FontWeight.w600,
         ),
       ),
-      subtitle: LatexView(latex: step.outputLatex),
+      subtitle: Text(
+        step.description,
+        style: const TextStyle(color: AppColors.neutralGray),
+      ),
       childrenPadding: const EdgeInsets.only(left: 12, right: 8, bottom: 8),
       children: [
         card,
@@ -142,6 +169,35 @@ class StepCard extends StatelessWidget {
             isActive: false,
           ),
         ),
+      ],
+    );
+  }
+}
+
+class _StepSection extends StatelessWidget {
+  final String label;
+  final Widget child;
+
+  const _StepSection({
+    required this.label,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: AppColors.neutralGray,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 6),
+        child,
       ],
     );
   }

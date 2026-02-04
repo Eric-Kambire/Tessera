@@ -2,6 +2,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import '../../domain/entities/math_solution.dart';
+import '../../domain/entities/solve_method.dart';
 import '../../domain/usecases/solve_equation_usecase.dart';
 import '../../../../core/errors/failures.dart';
 
@@ -22,7 +23,9 @@ class SolverBloc extends Bloc<SolverEvent, SolverState> {
   ) async {
     emit(const SolverLoading());
     try {
-      final solution = await solveEquation(SolveEquationParams(event.latexInput));
+      final solution = await solveEquation(
+        SolveEquationParams(event.latexInput, method: event.method),
+      );
       emit(SolverLoaded(solution));
     } catch (e) {
       if (e is Failure) {
